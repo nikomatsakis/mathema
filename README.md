@@ -22,13 +22,18 @@ mathema's internal data:
 my-deck/mathema.data
 ```
 
-You can then add cards to your deck by doing
+You can then add cards to your deck by creating text files in the
+`my-deck` directory. These files should have the extension `.cards`.
 
 ## Format of the flashcard file
 
-Flashcards are kept in a pair of files that always have related names.
-One is edited by humans (well, and the tool) and one exclusively by
-the tool itself. The human edited file is formatted like so:
+Flashcards are kept `.cards` files. Each is a text file that is meant
+to be edited by humans, though `mathema` will also edit it when a
+`cards` file is first loaded (just to insert a uuid).
+
+The way it is meant to work is like this. First, you assemble a file
+that contains the list of words you would like to add to your deck.
+The card file is formatted like so:
 
 ```
 en lesson
@@ -39,6 +44,33 @@ en yes
 gr ναι
 gr μάλιστα
 ```
+
+Then execute `mathema add newfile.cards`. This command will load your
+words into the database. `mathema add` doesn't always succeed. If it detects words that it
+thinks already exist in the database, it will stop and issue warnings
+(e.g., duplicates).  You can edit the file and try again (or use `-f`
+to force it to continue).
+
+Once it succeeds, `mathema add` will edit `newfile.cards` in place to
+add a `uuid` field to each word. It will also add `newfile.cards` to
+git version control (presuming that hasn't already been done).
+
+From here one out, `newfile.cards` will stay in place: you can edit
+the file to make corrections, and `mathema` will notice them.
+
+In fact, you can even add new words into the file later. In that case,
+you need to re-run `mathema add` to bring in the new words (but
+mathema will warn you if it finds new words that do not yet have a
+uuid assigned).
+
+## 
+
+
+
+
+The way it is meant work is like this:
+
+- You create 
 
 As you can see, each flashcard is separated by a blank line, and may have
 many lines of data. The first word on each line identifies what kind of line

@@ -1,10 +1,13 @@
 #![feature(crate_in_paths, crate_visibility_modifier, extern_absolute_paths, decl_macro,
            termination_trait, use_nested_groups, universal_impl_trait)]
 
-use structopt_derive::StructOpt;
-use structopt::StructOpt;
+use ::structopt_derive::StructOpt;
+use ::structopt::StructOpt;
+use ::failure::Error;
 
-mod data;
+mod cards;
+mod new;
+mod uuid;
 
 /// Do fancy things
 #[derive(StructOpt, Debug)]
@@ -22,17 +25,27 @@ enum Mathema {
 }
 
 fn main() {
+    match main1() {
+        Ok(()) => { }
+        Err(err) => {
+            eprintln!("{}", err);
+        }
+    }
+}
+
+fn main1() -> Result<(), Error> {
     match Mathema::from_args() {
         Mathema::Quiz {} => {
             println!("Don't you feel smarter?");
         }
 
         Mathema::New { directory } => {
-            println!("Loading file: `{}`", directory);
+            new::new(directory)?;
         }
 
         Mathema::Dump {} => {
             println!("Dumping cards");
         }
     }
+    Ok(())
 }
