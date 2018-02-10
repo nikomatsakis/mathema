@@ -1,0 +1,10 @@
+[package]
+name = "mathema"
+version = "0.1.0"
+authors = ["Niko Matsakis <niko@alum.mit.edu>"]
+
+[dependencies]
+structopt = "0.1.7"
+structopt-derive = "0.1.6"
+uuid = "0.5.1"
+git2 = "0.6.11"
