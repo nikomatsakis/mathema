@@ -15,6 +15,7 @@ extern crate structopt_derive;
 extern crate structopt;
 #[cfg(test)]
 extern crate tempdir;
+extern crate uuid;
 
 use structopt_derive::StructOpt;
 use structopt::StructOpt;
@@ -26,8 +27,9 @@ mod cards;
 mod errors;
 mod line_parser;
 mod new;
+mod prelude;
 mod test;
-mod uuid;
+mod uuid_ext;
 
 /// Do fancy things
 #[derive(StructOpt, Debug)]

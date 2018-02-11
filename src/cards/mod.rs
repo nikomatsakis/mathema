@@ -1,8 +1,4 @@
-use ::crate::errors;
-use ::crate::line_parser::LineParser;
-use ::crate::uuid::Uuid;
-use ::failure::{bail, Error};
-use ::std::fs::File;
+use crate::prelude::*;
 
 #[derive(Debug)]
 crate struct Cards {
