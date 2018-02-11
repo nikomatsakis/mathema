@@ -1,8 +1,8 @@
 use crate::prelude::*;
 
 #[derive(Debug)]
-crate struct Cards {
-    cards: Vec<Card>,
+crate struct CardSet {
+    cards: HashMap<Uuid, Card>,
 }
 
 #[derive(Debug)]
@@ -45,31 +45,28 @@ impl Card {
     }
 }
 
-crate fn parse_cards_file(source_file: &str) -> Result<Cards, Error> {
+crate fn parse_cards_file(source_file: &str) -> Result<Vec<Card>, Error> {
     // Annoying note:
     // - Should I be adding context here? Do I have to do it on **every** `?`
     // - Feels like I'd like the *caller* to tag with source file but for *me*
     //   to add e.g. line number
     let input = File::open(source_file)?;
     let parser = &mut LineParser::new(input)?;
-    let mut cards = Cards { cards: vec![] };
+    let mut cards = vec![];
 
     while !parser.eof() {
         if parser.current_line_is_blank() {
             parser.read_next_line()?;
         } else {
             let card = parse_card(source_file, parser)?;
-            cards.cards.push(card);
+            cards.push(card);
         }
     }
 
     Ok(cards)
 }
 
-fn parse_card(
-    source_file: &str,
-    parser: &mut LineParser,
-) -> Result<Card, Error> {
+fn parse_card(source_file: &str, parser: &mut LineParser) -> Result<Card, Error> {
     let mut card = Card {
         source_file: source_file.to_owned(),
         uuid: None,

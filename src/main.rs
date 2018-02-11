@@ -9,8 +9,12 @@
 // FIXME rust-lang/rust#47075
 #[cfg(test)]
 extern crate assert_cli;
+extern crate chrono;
 extern crate failure;
 extern crate git2;
+extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 extern crate structopt_derive;
 extern crate structopt;
 #[cfg(test)]
@@ -24,6 +28,7 @@ use std::process;
 
 mod add;
 mod cards;
+mod db;
 mod errors;
 mod line_parser;
 mod new;

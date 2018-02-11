@@ -9,10 +9,13 @@ structopt = "0.1.7"
 structopt-derive = "0.1.6"
 git2 = "0.6.11"
 string-interner = "0.6.3"
+chrono = "0.4.0"
+serde = "1.0.27"
+serde_derive = "1.0"
 
 [dependencies.uuid]
 version = "0.6.0-beta"
-features = ["v4"]
+features = ["v4", "serde"]
 
 [dev-dependencies]
 assert_cli = "0.5"
