@@ -63,28 +63,6 @@ you need to re-run `mathema add` to bring in the new words (but
 mathema will warn you if it finds new words that do not yet have a
 uuid assigned).
 
-## 
+## Testing and word selection
 
-
-
-
-The way it is meant work is like this:
-
-- You create 
-
-As you can see, each flashcard is separated by a blank line, and may have
-many lines of data. The first word on each line identifies what kind of line
-it is. The current lines are currently defined:
-
-- `#` -- a comment line. This is ignored, but must nonetheless be attached to a word.
-- `en` -- English meaning for a word
-- `gr` -- Greek meaning for a word
-- `uuid` -- the UUID for a word; this will be auto-inserted by mathema
-  when your file is loaded (and then written back out). This will be used to
-  track your words uniquely.
-
-The idea is that you can add words to the file and then run `mathema load file`.
-It will 
-  
-  
-mathema new 
+To be written. Still busy implementing the stuff before. =)
