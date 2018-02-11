@@ -1,19 +1,32 @@
 #![feature(crate_in_paths, conservative_impl_trait, crate_visibility_modifier, decl_macro,
-           dyn_trait, extern_absolute_paths, in_band_lifetimes, nll, termination_trait,
-           underscore_lifetimes, universal_impl_trait)]
+           dyn_trait, /*FIXME(rust-lang/rust#47075) extern_absolute_paths,*/
+           in_band_lifetimes, nll,
+           termination_trait, underscore_lifetimes, universal_impl_trait)]
 
 // FIXME can't use this because of format!
 //#![deny(elided_lifetime_in_path)]
 
+// FIXME rust-lang/rust#47075
+#[cfg(test)]
+extern crate assert_cli;
+extern crate failure;
+extern crate git2;
+extern crate structopt_derive;
+extern crate structopt;
+#[cfg(test)]
+extern crate tempdir;
+
 use structopt_derive::StructOpt;
 use structopt::StructOpt;
 use failure::Error;
+use std::process;
 
 mod add;
 mod cards;
 mod errors;
 mod line_parser;
 mod new;
+mod test;
 mod uuid;
 
 /// Do fancy things
@@ -42,6 +55,7 @@ fn main() {
         Ok(()) => {}
         Err(err) => {
             eprintln!("{}", err);
+            process::exit(1);
         }
     }
 }

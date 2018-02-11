@@ -1,16 +1,16 @@
-use failure::Fail;
+use failure::{Fail, Error};
 
 #[derive(Fail, Debug)]
-#[fail(display = "error reading `{}`", source_file)]
-pub(crate) struct ErrorReading {
-    pub(crate) source_file: String,
+#[fail(display = "line {} contains an unrecognized line kind `{}`", source_line, kind)]
+pub(crate) struct UnrecognizedLineKind {
+    pub(crate) source_line: u64,
+    pub(crate) kind: String
 }
 
 #[derive(Fail, Debug)]
-#[fail(display = "{}:{}: unrecognized line kind `{}`", source_file, source_line, kind)]
-pub(crate) struct UnrecognizedLineKind {
-    pub(crate) source_file: String,
-    pub(crate) source_line: u64,
-    pub(crate) kind: String
+#[fail(display = "Error accessing `{}`: {}", file, error)]
+pub(crate) struct ErrorAccessingFile {
+    pub(crate) file: String,
+    /*#[cause]*/ pub(crate) error: Error,
 }
 
