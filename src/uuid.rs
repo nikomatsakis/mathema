@@ -1,5 +1,3 @@
-use ::uuid::
-
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 crate struct Uuid {
     data: String

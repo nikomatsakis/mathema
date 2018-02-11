@@ -7,6 +7,9 @@ authors = ["Niko Matsakis <niko@alum.mit.edu>"]
 failure = "0.1.1"
 structopt = "0.1.7"
 structopt-derive = "0.1.6"
-uuid = "0.5.1"
 git2 = "0.6.11"
 string-interner = "0.6.3"
+
+[dependencies.uuid]
+version = "0.6.0-beta"
+features = ["v4"]

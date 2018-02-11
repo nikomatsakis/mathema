@@ -1,11 +1,17 @@
-#![feature(crate_in_paths, crate_visibility_modifier, extern_absolute_paths, decl_macro,
-           termination_trait, use_nested_groups, universal_impl_trait)]
+#![feature(crate_in_paths, conservative_impl_trait, crate_visibility_modifier, decl_macro,
+           dyn_trait, extern_absolute_paths, in_band_lifetimes, nll, termination_trait,
+           use_nested_groups, underscore_lifetimes, universal_impl_trait)]
 
-use ::structopt_derive::StructOpt;
-use ::structopt::StructOpt;
-use ::failure::Error;
+// FIXME can't use this because of format!
+//#![deny(elided_lifetime_in_path)]
+
+use structopt_derive::StructOpt;
+use structopt::StructOpt;
+use failure::Error;
 
 mod cards;
+mod errors;
+mod line_parser;
 mod new;
 mod uuid;
 
@@ -26,7 +32,7 @@ enum Mathema {
 
 fn main() {
     match main1() {
-        Ok(()) => { }
+        Ok(()) => {}
         Err(err) => {
             eprintln!("{}", err);
         }
