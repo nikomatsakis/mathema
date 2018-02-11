@@ -1,6 +1,6 @@
 #![feature(crate_in_paths, conservative_impl_trait, crate_visibility_modifier, decl_macro,
            dyn_trait, extern_absolute_paths, in_band_lifetimes, nll, termination_trait,
-           use_nested_groups, underscore_lifetimes, universal_impl_trait)]
+           underscore_lifetimes, universal_impl_trait)]
 
 // FIXME can't use this because of format!
 //#![deny(elided_lifetime_in_path)]
@@ -9,6 +9,7 @@ use structopt_derive::StructOpt;
 use structopt::StructOpt;
 use failure::Error;
 
+mod add;
 mod cards;
 mod errors;
 mod line_parser;
@@ -27,6 +28,12 @@ enum Mathema {
     New {
         #[structopt(help = "where to create your cards")]
         directory: String,
+    },
+
+    #[structopt(name = "add", about = "add new cards from file")]
+    Add {
+        #[structopt(help = "new card file")]
+        file: String,
     },
 }
 
@@ -47,6 +54,10 @@ fn main1() -> Result<(), Error> {
 
         Mathema::New { directory } => {
             new::new(directory)?;
+        }
+
+        Mathema::Add { file } => {
+            add::add(file)?;
         }
 
         Mathema::Dump {} => {

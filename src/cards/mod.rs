@@ -2,7 +2,7 @@ use ::crate::errors;
 use ::crate::line_parser::LineParser;
 use ::crate::uuid::Uuid;
 use ::failure::{bail, Error, ResultExt};
-use ::std::io::Read;
+use ::std::fs::File;
 
 #[derive(Debug)]
 crate struct Cards {
@@ -49,7 +49,8 @@ impl Card {
     }
 }
 
-crate fn parse_cards_file(source_file: &str, input: impl Read + 'static) -> Result<Cards, Error> {
+crate fn parse_cards_file(source_file: &str) -> Result<Cards, Error> {
+    let input = File::open(source_file)?;
     let parser = &mut LineParser::new(input).with_context(|_| errors::ErrorReading {
         source_file: source_file.to_owned()
     })?;
@@ -57,11 +58,11 @@ crate fn parse_cards_file(source_file: &str, input: impl Read + 'static) -> Resu
 
     while !parser.eof() {
         if parser.current_line_is_blank() {
-            continue;
+            parser.read_next_line()?;
+        } else {
+            let card = parse_card_file(source_file, parser)?;
+            cards.cards.push(card);
         }
-
-        let card = parse_card_file(source_file, parser)?;
-        cards.cards.push(card);
     }
 
     Ok(cards)
@@ -89,7 +90,7 @@ fn parse_card_file(
             let word0 = line.split_whitespace().next().unwrap();
             let kind = match word0 {
                 "en" => LineKind::Meaning(Language::English),
-                "gr" => LineKind::Meaning(Language::English),
+                "gr" => LineKind::Meaning(Language::Greek),
                 _ => {
                     bail!(errors::UnrecognizedLineKind {
                         source_file: source_file.to_owned(),
@@ -100,7 +101,7 @@ fn parse_card_file(
             };
             card.lines.push(CardLine {
                 kind: kind,
-                text: line[1..].trim().to_owned(),
+                text: line[word0.len()..].trim().to_owned(),
             });
         }
 
