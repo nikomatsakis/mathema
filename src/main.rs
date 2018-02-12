@@ -1,6 +1,8 @@
+#![allow(dead_code)]
+#![deny(unused_must_use)] // always a bug
 #![feature(crate_in_paths, conservative_impl_trait, crate_visibility_modifier, decl_macro,
            dyn_trait, /*FIXME(rust-lang/rust#47075) extern_absolute_paths,*/
-           in_band_lifetimes, nll,
+           in_band_lifetimes, match_default_bindings, nll,
            termination_trait, underscore_lifetimes, universal_impl_trait)]
 
 // FIXME can't use this because of format!

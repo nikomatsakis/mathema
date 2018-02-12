@@ -6,7 +6,7 @@ crate fn new(directory: String) -> Fallible<()> {
     match new_atomic(&directory) {
         Ok(()) => Ok(()),
         Err(e) => {
-            fs::remove_dir_all(&directory);
+            let _ = fs::remove_dir_all(&directory); // if this fails, oh well
             Err(e)
         }
     }
@@ -15,6 +15,6 @@ crate fn new(directory: String) -> Fallible<()> {
 fn new_atomic(directory: impl AsRef<Path>) -> Fallible<()> {
     let mut mathema_repository = MathemaRepository::create_on_disk(&directory)?;
     let db = Database::empty();
-    mathema_repository.write_database(&db);
+    mathema_repository.write_database(&db)?;
     Ok(())
 }

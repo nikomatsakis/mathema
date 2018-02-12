@@ -56,20 +56,29 @@ impl MathemaRepository {
         })?;
 
         let mut index = self.repository.index()?;
-        index.add_path(Path::new(RELATIVE_DB_PATH));
-        let tree_id = index.write_tree()?;
+        index.add_path(Path::new(RELATIVE_DB_PATH))?;
+        index.write()?;
+
+        let tree_id = self.repository.index()?.write_tree()?;
         let tree = self.repository.find_tree(tree_id)?;
         let signature = Self::signature()?;
-        let head_oid = self.repository.head()?.target().unwrap();
-        let head_commit = self.repository.find_commit(head_oid)?;
+        let parents = match self.repository.head() {
+            Ok(head_ref) => {
+                let head_oid = head_ref.target().unwrap();
+                Some(self.repository.find_commit(head_oid)?)
+            }
+            _ => None,
+        };
+        let parents: Vec<_> = parents.iter().collect();
         self.repository.commit(
             Some("HEAD"),
             &signature,
             &signature,
             "mathema: write_database",
             &tree,
-            &[&head_commit],
+            &parents,
         )?;
+        self.repository.checkout_head(None)?;
 
         Ok(())
     }

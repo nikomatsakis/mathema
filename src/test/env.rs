@@ -47,6 +47,11 @@ impl TestEnv {
             .current_dir(self.temp_dir.path().to_owned())
     }
 
+    crate fn assert_git(&mut self, in_dir: &str) -> Assert {
+        Assert::command(&["git"])
+            .current_dir(self.temp_dir.path().join(in_dir).to_owned())
+    }
+
     crate fn write_file(&mut self, name: &str, contents: &str) -> io::Result<()> {
         let path = self.temp_dir.path().join(name);
         let mut file = File::create(path)?;
