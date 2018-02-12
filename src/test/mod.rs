@@ -12,7 +12,7 @@ mathema_test! {
         env.assert_mathema()
            .with_args(&["new", "foo"])
            .stderr()
-           .contains("failed to create directory `foo`")
+           .contains("Failed to create directory `foo`: File exists")
            .and()
            .fails()
            .unwrap();

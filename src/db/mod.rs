@@ -57,3 +57,20 @@ pub(crate) enum QuestionResult {
     /// User didn't know it.
     No,
 }
+
+impl Database {
+    crate fn empty() -> Database {
+        Database {
+            card_files: vec![],
+            user: User { records: vec![] },
+        }
+    }
+
+    crate fn write_to_path(&self, path: impl AsRef<Path>) -> Result<(), Error> {
+        let path: &Path = path.as_ref();
+        AtomicFile::new(path, OverwriteBehavior::AllowOverwrite)
+            .write(|file| ::serde_json::ser::to_writer(file, self))?;
+
+        Ok(())
+    }
+}

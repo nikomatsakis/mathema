@@ -2,20 +2,19 @@
 
 use crate::prelude::*;
 
-crate fn new(directory: String) -> Result<(), Error> {
-    fs::create_dir(&directory).with_context(|_| {
-        format!(
-            "failed to create directory `{}`, maybe it already exists?",
-            directory
-        )
-    })?;
+crate fn new(directory: String) -> Fallible<()> {
+    match new_atomic(&directory) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            fs::remove_dir_all(&directory);
+            Err(e)
+        }
+    }
+}
 
-    Repository::init(&directory).with_context(|_| {
-        format!(
-            "failed to initialize git repo in `{}`",
-            directory
-        )
-    })?;
-
+fn new_atomic(directory: impl AsRef<Path>) -> Fallible<()> {
+    let mut mathema_repository = MathemaRepository::create_on_disk(&directory)?;
+    let db = Database::empty();
+    mathema_repository.write_database(&db);
     Ok(())
 }

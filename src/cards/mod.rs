@@ -25,8 +25,8 @@ crate enum LineKind {
     Meaning(Language),
 }
 
-#[derive(Debug, PartialEq, Eq)]
-crate enum Language {
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub(crate) enum Language {
     English,
     Greek,
 }
@@ -45,7 +45,7 @@ impl Card {
     }
 }
 
-crate fn parse_cards_file(source_file: &str) -> Result<Vec<Card>, Error> {
+crate fn parse_cards_file(source_file: &str) -> Fallible<Vec<Card>> {
     // Annoying note:
     // - Should I be adding context here? Do I have to do it on **every** `?`
     // - Feels like I'd like the *caller* to tag with source file but for *me*
@@ -66,7 +66,7 @@ crate fn parse_cards_file(source_file: &str) -> Result<Vec<Card>, Error> {
     Ok(cards)
 }
 
-fn parse_card(source_file: &str, parser: &mut LineParser) -> Result<Card, Error> {
+fn parse_card(source_file: &str, parser: &mut LineParser) -> Fallible<Card> {
     let mut card = Card {
         source_file: source_file.to_owned(),
         uuid: None,
@@ -87,7 +87,7 @@ fn parse_card(source_file: &str, parser: &mut LineParser) -> Result<Card, Error>
                 "en" => LineKind::Meaning(Language::English),
                 "gr" => LineKind::Meaning(Language::Greek),
                 _ => {
-                    bail!(errors::UnrecognizedLineKind {
+                    return Err(MathemaError::UnrecognizedLineKind {
                         source_line: parser.line_number(),
                         kind: word0.to_string(),
                     });

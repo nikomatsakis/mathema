@@ -1,11 +1,10 @@
 //! New subcommand.
 
-use crate::cards;
-use crate::errors::ErrorAccessingFile;
-use failure::Error;
+use crate::prelude::*;
 
-crate fn add(file: String) -> Result<(), Error> {
-    let cards = cards::parse_cards_file(&file).map_err(|error| ErrorAccessingFile { error, file })?;
+crate fn add(file: String) -> Fallible<()> {
+    let cards = cards::parse_cards_file(&file)
+        .map_err(|error| MathemaError::AccessingFile { error: error.into(), file })?;
     println!("cards = {:#?}", cards);
     Ok(())
 }
