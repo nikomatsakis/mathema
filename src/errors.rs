@@ -1,39 +1,75 @@
-use crate::prelude::*;
-use failure::Fail;
+use failure::{Context, Fail};
+use std::fmt;
 
 pub(crate) type Fallible<T> = Result<T, MathemaError>;
 
-#[derive(Fail, Debug)]
-pub(crate) enum MathemaError {
-    #[fail(display = "line {} contains an unrecognized line kind `{}`", source_line, kind)]
-    UnrecognizedLineKind { source_line: u64, kind: String },
+#[derive(Debug, Fail)]
+pub(crate) struct MathemaError {
+    error: Context<MathemaErrorKind>,
+}
 
-    #[fail(display = "Error accessing `{}`: {}", file, error)]
-    AccessingFile {
-        file: String,
-        /*#[cause]*/ error: Error,
+#[derive(Fail, Debug)]
+pub(crate) enum MathemaErrorKind {
+    #[fail(display = "line {} contains an unrecognized line kind `{}`", source_line, kind)]
+    UnrecognizedLineKind {
+        source_line: u64,
+        kind: String,
     },
 
-    #[fail(display = "Failed to create directory `{}`: {}", directory_path, error)]
+    #[fail(display = "Error accessing `{}`", file)] AccessingFile {
+        file: String,
+    },
+
+    #[fail(display = "Failed to create directory `{}`", directory_path)]
     CreatingDir {
         directory_path: String,
-        /*#[cause]*/ error: Error,
     },
 
-    #[fail(display = "Cannot load Mathema database from `{}`: {}", database_path, error)]
+    #[fail(display = "Cannot load Mathema database from `{}`", database_path)]
     CannotLoadDatabase {
         database_path: String,
-        /*#[cause]*/ error: Error,
     },
 
-    #[fail(display = "No git repository found in `{}`: {}", directory_path, error)]
+    #[fail(display = "No git repository found in `{}`", directory_path)]
     NoGitRepositoryFound {
         directory_path: String,
-        error: Error,
     },
 
-    #[fail(display = "Unexpected error encountered `{:?}`", error)]
-    Unexpected { error: Error, backtrace: ::failure::Backtrace }
+    #[fail(display = "Unexpected error encountered")]
+    Unexpected,
+}
+
+impl From<Context<MathemaErrorKind>> for MathemaError {
+    fn from(error: Context<MathemaErrorKind>) -> MathemaError {
+        MathemaError { error }
+    }
+}
+
+impl From<MathemaErrorKind> for MathemaError {
+    fn from(error: MathemaErrorKind) -> MathemaError {
+        MathemaError {
+            error: Context::new(error),
+        }
+    }
+}
+
+impl fmt::Display for MathemaError {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{}", self.error)?;
+        match self.error.get_context() {
+            MathemaErrorKind::Unexpected => {
+                if let Some(cause) = self.error.cause() {
+                    write!(fmt, ": {:?}", cause)?;
+                }
+            }
+            _ => {
+                if let Some(cause) = self.error.cause() {
+                    write!(fmt, ": {}", cause)?;
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 macro_rules! link_unexpected {
@@ -41,10 +77,7 @@ macro_rules! link_unexpected {
         $(
             impl From<$t> for MathemaError {
                 fn from(value: $t) -> MathemaError {
-                    MathemaError::Unexpected {
-                        error: Error::from(value),
-                        backtrace: ::failure::Backtrace::new(),
-                    }
+                    MathemaError::from(value.context(MathemaErrorKind::Unexpected))
                 }
             }
         )*

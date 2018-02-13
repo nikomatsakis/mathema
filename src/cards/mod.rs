@@ -87,10 +87,10 @@ fn parse_card(source_file: &str, parser: &mut LineParser) -> Fallible<Card> {
                 "en" => LineKind::Meaning(Language::English),
                 "gr" => LineKind::Meaning(Language::Greek),
                 _ => {
-                    return Err(MathemaError::UnrecognizedLineKind {
+                    return Err(MathemaErrorKind::UnrecognizedLineKind {
                         source_line: parser.line_number(),
                         kind: word0.to_string(),
-                    });
+                    }.into());
                 }
             };
             card.lines.push(CardLine {

@@ -2,7 +2,7 @@
 
 crate use crate::cards::{self, Card, CardLine, LineKind, Language};
 crate use crate::db::{Database, User, CardRecord, QuestionRecord, QuestionKind, QuestionResult};
-crate use crate::errors::{Fallible, MathemaError};
+crate use crate::errors::{Fallible, MathemaError, MathemaErrorKind};
 crate use crate::git::MathemaRepository;
 crate use crate::line_parser::LineParser;
 

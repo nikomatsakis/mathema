@@ -14,9 +14,8 @@ impl MathemaRepository {
     crate fn create_on_disk(directory: impl AsRef<Path>) -> Fallible<MathemaRepository> {
         let directory_path = directory.as_ref().to_owned();
 
-        fs::create_dir(&directory_path).map_err(|e| MathemaError::CreatingDir {
+        fs::create_dir(&directory_path).with_context(|_| MathemaErrorKind::CreatingDir {
             directory_path: directory_path.display().to_string(),
-            error: Error::from(e),
         })?;
 
         let repository = git2::Repository::init(&directory_path)?;
@@ -36,17 +35,15 @@ impl MathemaRepository {
     crate fn open(directory: impl AsRef<Path>) -> Fallible<MathemaRepository> {
         let directory_path = directory.as_ref().to_owned();
         let db_path = directory_path.join(RELATIVE_DB_PATH);
-        let database = Self::read_from(&db_path, |f| Database::load_from(f)).map_err(|e| {
-            MathemaError::CannotLoadDatabase {
+        let database = Self::read_from(&db_path, |f| Database::load_from(f)).with_context(|_| {
+            MathemaErrorKind::CannotLoadDatabase {
                 database_path: db_path.display().to_string(),
-                error: Error::from(e),
             }
         })?;
 
-        let repository = git2::Repository::open(&directory_path).map_err(|e| {
-            MathemaError::NoGitRepositoryFound {
+        let repository = git2::Repository::open(&directory_path).with_context(|_| {
+            MathemaErrorKind::NoGitRepositoryFound {
                 directory_path: directory_path.display().to_string(),
-                error: Error::from(e),
             }
         })?;
 
@@ -111,10 +108,9 @@ impl MathemaRepository {
 
     crate fn write_database(&mut self) -> Fallible<()> {
         let db_path = self.db_path();
-        Self::write_file(&self.db_path(), |f| self.database.write_to(f)).map_err(|e| {
-            MathemaError::AccessingFile {
+        Self::write_file(&self.db_path(), |f| self.database.write_to(f)).with_context(|_| {
+            MathemaErrorKind::AccessingFile {
                 file: db_path.display().to_string(),
-                error: Error::from(e),
             }
         })?;
 
