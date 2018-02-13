@@ -13,8 +13,7 @@ crate fn new(directory: String) -> Fallible<()> {
 }
 
 fn new_atomic(directory: impl AsRef<Path>) -> Fallible<()> {
-    let mut mathema_repository = MathemaRepository::create_on_disk(&directory)?;
-    let db = Database::empty();
-    mathema_repository.write_database(&db)?;
+    let _ = MathemaRepository::create_on_disk(&directory)?;
+
     Ok(())
 }

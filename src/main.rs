@@ -24,6 +24,7 @@ extern crate structopt;
 #[cfg(test)]
 extern crate tempdir;
 extern crate uuid;
+extern crate walkdir;
 
 use structopt_derive::StructOpt;
 use structopt::StructOpt;
@@ -37,6 +38,7 @@ mod errors;
 mod git;
 mod line_parser;
 mod new;
+mod status;
 mod prelude;
 mod test;
 mod uuid_ext;
@@ -53,6 +55,12 @@ enum Mathema {
     New {
         #[structopt(help = "where to create your cards")]
         directory: String,
+    },
+
+    #[structopt(name = "status", about = "create a new deck of cards")]
+    Status {
+        #[structopt(help = "directory containing your cards")]
+        directory: Option<String>,
     },
 
     #[structopt(name = "add", about = "add new cards from file")]
@@ -80,6 +88,10 @@ fn main1() -> Result<(), Error> {
 
         Mathema::New { directory } => {
             new::new(directory)?;
+        }
+
+        Mathema::Status { directory } => {
+            status::status(directory)?;
         }
 
         Mathema::Add { file } => {

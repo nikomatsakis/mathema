@@ -1,8 +1,11 @@
+//! Manages the git repository and files that stores our data.
+
 use crate::prelude::*;
 
 crate struct MathemaRepository {
     directory_path: PathBuf,
     repository: git2::Repository,
+    database: Database,
 }
 
 const RELATIVE_DB_PATH: &str = ".mathema-v1.json";
@@ -18,17 +21,27 @@ impl MathemaRepository {
 
         let repository = git2::Repository::init(&directory_path)?;
 
-        Ok(MathemaRepository { directory_path, repository })
+        let database = Database::empty();
+
+        let mut repository = MathemaRepository {
+            directory_path,
+            repository,
+            database,
+        };
+        repository.write_database()?;
+
+        Ok(repository)
     }
 
-    crate fn open(&self, directory: impl AsRef<Path>) -> Fallible<MathemaRepository> {
+    crate fn open(directory: impl AsRef<Path>) -> Fallible<MathemaRepository> {
         let directory_path = directory.as_ref().to_owned();
         let db_path = directory_path.join(RELATIVE_DB_PATH);
-        if !db_path.exists() {
-            return Err(MathemaError::NoDatabaseFileFound {
-                directory_path: directory_path.display().to_string(),
-            });
-        }
+        let database = Self::read_from(&db_path, |f| Database::load_from(f)).map_err(|e| {
+            MathemaError::CannotLoadDatabase {
+                database_path: db_path.display().to_string(),
+                error: Error::from(e),
+            }
+        })?;
 
         let repository = git2::Repository::open(&directory_path).map_err(|e| {
             MathemaError::NoGitRepositoryFound {
@@ -37,22 +50,72 @@ impl MathemaRepository {
             }
         })?;
 
-        Ok(MathemaRepository { directory_path, repository })
+        Ok(MathemaRepository {
+            directory_path,
+            repository,
+            database,
+        })
+    }
+
+    crate fn database(&self) -> &Database {
+        &self.database
+    }
+
+    crate fn database_mut(&mut self) -> &mut Database {
+        &mut self.database
+    }
+
+    /// Makes a "database-relative" path into an absolute path.
+    fn absolute_path(&self, relative_path: impl AsRef<Path>) -> PathBuf {
+        self.directory_path.join(relative_path)
+    }
+
+    /// Returns a path relative to the database directory (or absolute
+    /// path if `absolute_path` is not within database directory).
+    fn relative_path(&self, absolute_path: impl AsRef<Path>) -> PathBuf {
+        let absolute_path = absolute_path.as_ref();
+        assert!(absolute_path.is_absolute());
+        match absolute_path.strip_prefix(&self.directory_path) {
+            Ok(p) => p.to_owned(),
+            Err(_) => absolute_path.to_owned(),
+        }
     }
 
     fn db_path(&self) -> PathBuf {
-        self.directory_path.join(RELATIVE_DB_PATH)
+        self.absolute_path(RELATIVE_DB_PATH)
     }
 
     fn signature() -> Fallible<git2::Signature<'static>> {
         Ok(git2::Signature::now("mathema", "mathema@example.com")?)
     }
 
-    crate fn write_database(&mut self, db: &Database) -> Fallible<()> {
+    crate fn write_file(
+        file_name: &Path,
+        op: impl FnMut(&mut File) -> Fallible<()>,
+    ) -> Fallible<()> {
+        match AtomicFile::new(file_name, OverwriteBehavior::AllowOverwrite).write(op) {
+            Ok(()) => Ok(()),
+            Err(::atomicwrites::Error::Internal(e)) => return Err(e.into()),
+            Err(::atomicwrites::Error::User(e)) => return Err(e),
+        }
+    }
+
+    crate fn read_from<R>(
+        file_name: &Path,
+        mut op: impl FnMut(&mut File) -> Fallible<R>,
+    ) -> Fallible<R> {
+        let mut file = File::open(file_name)?;
+        let r = op(&mut file)?;
+        Ok(r)
+    }
+
+    crate fn write_database(&mut self) -> Fallible<()> {
         let db_path = self.db_path();
-        db.write_to_path(&db_path).map_err(|e| MathemaError::AccessingFile {
-            file: db_path.display().to_string(),
-            error: Error::from(e),
+        Self::write_file(&self.db_path(), |f| self.database.write_to(f)).map_err(|e| {
+            MathemaError::AccessingFile {
+                file: db_path.display().to_string(),
+                error: Error::from(e),
+            }
         })?;
 
         let mut index = self.repository.index()?;
@@ -81,5 +144,33 @@ impl MathemaRepository {
         self.repository.checkout_head(None)?;
 
         Ok(())
+    }
+
+    /// Returns database-relative paths to all the card files.
+    crate fn all_card_files(&self) -> Fallible<Vec<PathBuf>> {
+        // Ergonomic hits:
+        // - no `Path::has_extension`?
+        // - working with errors in an iterator is awful
+        // - WalkDir has no "filter files"?
+        //
+        // as a result, switched to for loop :(
+
+        let mut results = vec![];
+
+        for entry in ::walkdir::WalkDir::new(&self.directory_path) {
+            let entry = entry?;
+
+            if !entry.file_type().is_file() {
+                continue;
+            }
+
+            if entry.path().extension().map(|e| e != "cards").unwrap_or(true) {
+                continue;
+            }
+
+            results.push(self.relative_path(entry.path().canonicalize()?));
+        }
+
+        Ok(results)
     }
 }

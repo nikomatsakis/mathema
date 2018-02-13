@@ -6,12 +6,12 @@ use crate::prelude::*;
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Database {
-    /// Path to each card file, relative to our directory.
-    card_files: Vec<PathBuf>,
+    /// Path to each card file, relative to database directory.
+    pub(crate) card_files: Vec<PathBuf>,
 
     /// Records specific to a given user (for now, we only support one
     /// user per directory).
-    user: User,
+    pub(crate) user: User,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -66,11 +66,13 @@ impl Database {
         }
     }
 
-    crate fn write_to_path(&self, path: impl AsRef<Path>) -> Result<(), Error> {
-        let path: &Path = path.as_ref();
-        AtomicFile::new(path, OverwriteBehavior::AllowOverwrite)
-            .write(|file| ::serde_json::ser::to_writer(file, self))?;
-
+    crate fn write_to(&self, writer: impl io::Write) -> Fallible<()> {
+        ::serde_json::ser::to_writer(writer, self)?;
         Ok(())
+    }
+
+    crate fn load_from(reader: impl io::Read) -> Fallible<Self> {
+        let db = ::serde_json::de::from_reader(reader)?;
+        Ok(db)
     }
 }

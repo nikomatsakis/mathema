@@ -20,8 +20,11 @@ pub(crate) enum MathemaError {
         /*#[cause]*/ error: Error,
     },
 
-    #[fail(display = "No mathema database found in `{}`", directory_path)]
-    NoDatabaseFileFound { directory_path: String },
+    #[fail(display = "Cannot load Mathema database from `{}`: {}", database_path, error)]
+    CannotLoadDatabase {
+        database_path: String,
+        /*#[cause]*/ error: Error,
+    },
 
     #[fail(display = "No git repository found in `{}`: {}", directory_path, error)]
     NoGitRepositoryFound {
@@ -50,5 +53,7 @@ macro_rules! link_unexpected {
 
 link_unexpected! {
     ::std::io::Error,
+    ::walkdir::Error,
     ::git2::Error,
+    ::serde_json::Error,
 }

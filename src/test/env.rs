@@ -41,10 +41,10 @@ crate fn mathema_test(
 
 impl TestEnv {
     /// Returns an `Assert` that is configured to run `mathema`.
-    crate fn assert_mathema(&mut self) -> Assert {
+    crate fn assert_mathema(&mut self, in_dir: &str) -> Assert {
         let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
         Assert::command(&["cargo", "run", "--manifest-path", manifest_dir.to_str().unwrap(), "--"])
-            .current_dir(self.temp_dir.path().to_owned())
+            .current_dir(self.temp_dir.path().join(in_dir).to_owned())
     }
 
     crate fn assert_git(&mut self, in_dir: &str) -> Assert {
