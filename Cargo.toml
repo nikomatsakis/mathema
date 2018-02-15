@@ -6,6 +6,7 @@ authors = ["Niko Matsakis <niko@alum.mit.edu>"]
 [dependencies]
 atomicwrites = "0.1"
 failure = "0.1.1"
+itertools = "0.7.6"
 structopt = "0.1.7"
 structopt-derive = "0.1.6"
 git2 = "0.6.11"

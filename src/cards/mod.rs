@@ -7,16 +7,16 @@ crate struct CardSet {
 
 #[derive(Debug)]
 crate struct Card {
-    source_file: String,
-    uuid: Option<Uuid>,
-    start_line: u64,
-    lines: Vec<CardLine>,
+    crate source_file: PathBuf,
+    crate uuid: Option<Uuid>,
+    crate start_line: u64,
+    crate lines: Vec<CardLine>,
 }
 
 #[derive(Debug)]
 crate struct CardLine {
-    kind: LineKind,
-    text: String,
+    crate kind: LineKind,
+    crate text: String,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -45,12 +45,19 @@ impl Card {
     }
 }
 
-crate fn parse_cards_file(source_file: &str) -> Fallible<Vec<Card>> {
+crate fn parse_cards_file(source_file: &Path) -> Fallible<Vec<Card>> {
+    let input = File::open(source_file)?;
+    parse_cards_file_from(source_file, input)
+}
+
+crate fn parse_cards_file_from(
+    source_file: &Path,
+    input: File,
+) -> Fallible<Vec<Card>> {
     // Annoying note:
     // - Should I be adding context here? Do I have to do it on **every** `?`
     // - Feels like I'd like the *caller* to tag with source file but for *me*
     //   to add e.g. line number
-    let input = File::open(source_file)?;
     let parser = &mut LineParser::new(input)?;
     let mut cards = vec![];
 
@@ -66,7 +73,7 @@ crate fn parse_cards_file(source_file: &str) -> Fallible<Vec<Card>> {
     Ok(cards)
 }
 
-fn parse_card(source_file: &str, parser: &mut LineParser) -> Fallible<Card> {
+fn parse_card(source_file: &Path, parser: &mut LineParser) -> Fallible<Card> {
     let mut card = Card {
         source_file: source_file.to_owned(),
         uuid: None,

@@ -6,6 +6,7 @@ crate struct MathemaRepository {
     directory_path: PathBuf,
     repository: git2::Repository,
     database: Database,
+    cards: HashMap<Uuid, Card>,
 }
 
 const RELATIVE_DB_PATH: &str = ".mathema-v1.json";
@@ -26,6 +27,7 @@ impl MathemaRepository {
             directory_path,
             repository,
             database,
+            cards: HashMap::new(),
         };
         repository.write_database()?;
 
@@ -51,6 +53,7 @@ impl MathemaRepository {
             directory_path,
             repository,
             database,
+            cards: HashMap::new(),
         })
     }
 
@@ -67,14 +70,24 @@ impl MathemaRepository {
         self.directory_path.join(relative_path)
     }
 
-    /// Returns a path relative to the database directory (or absolute
-    /// path if `absolute_path` is not within database directory).
-    fn relative_path(&self, absolute_path: impl AsRef<Path>) -> PathBuf {
+    /// Open a relative path found in the repo.
+    fn open_file(&self, relative_path: impl AsRef<Path>) -> Fallible<File> {
+        let absolute_path = self.absolute_path(relative_path);
+        Ok(
+            File::open(&absolute_path).with_context(|_| MathemaErrorKind::AccessingFile {
+                file: absolute_path.display().to_string(),
+            })?,
+        )
+    }
+
+    /// Returns a path relative to the database directory. Returns
+    /// `None` if `absolute_path` is not within database directory.
+    fn relative_path(&self, absolute_path: impl AsRef<Path>) -> Option<PathBuf> {
         let absolute_path = absolute_path.as_ref();
         assert!(absolute_path.is_absolute());
         match absolute_path.strip_prefix(&self.directory_path) {
-            Ok(p) => p.to_owned(),
-            Err(_) => absolute_path.to_owned(),
+            Ok(p) => Some(p.to_owned()),
+            Err(_) => None,
         }
     }
 
@@ -160,13 +173,30 @@ impl MathemaRepository {
                 continue;
             }
 
-            if entry.path().extension().map(|e| e != "cards").unwrap_or(true) {
+            if entry
+                .path()
+                .extension()
+                .map(|e| e != "cards")
+                .unwrap_or(true)
+            {
                 continue;
             }
 
-            results.push(self.relative_path(entry.path().canonicalize()?));
+            match entry.path().strip_prefix(&self.directory_path) {
+                Ok(p) => results.push(p.to_owned()),
+                Err(_) => panic!(
+                    "expected `{:?}` to have a prefix of `{:?}`",
+                    entry.path(),
+                    self.directory_path,
+                ),
+            }
         }
 
         Ok(results)
+    }
+
+    crate fn parse_card_file_from_repo(&self, relative_path: &Path) -> Fallible<Vec<Card>> {
+        let file = self.open_file(relative_path)?;
+        Ok(cards::parse_cards_file_from(relative_path, file)?)
     }
 }

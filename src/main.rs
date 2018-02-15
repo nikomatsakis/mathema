@@ -15,6 +15,7 @@ extern crate atomicwrites;
 extern crate chrono;
 extern crate failure;
 extern crate git2;
+extern crate itertools;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;

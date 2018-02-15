@@ -6,7 +6,7 @@ use crate::prelude::*;
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct Database {
-    /// Path to each card file, relative to database directory.
+    /// Path to each card file, relative to our directory.
     pub(crate) card_files: Vec<PathBuf>,
 
     /// Records specific to a given user (for now, we only support one

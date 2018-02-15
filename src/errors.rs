@@ -16,9 +16,18 @@ pub(crate) enum MathemaErrorKind {
         kind: String,
     },
 
+    #[fail(display = "card on line {} of `{}` does not have a UUID; re-run `mathema add`?",
+           source_file, source_line)]
+    CardWithNoUuid {
+        source_file: String,
+        source_line: u64,
+    },
+
     #[fail(display = "Error accessing `{}`", file)] AccessingFile {
         file: String,
     },
+
+    #[fail(display = "Error loading card file")] ErrorLoadingCardFile,
 
     #[fail(display = "Failed to create directory `{}`", directory_path)]
     CreatingDir {
