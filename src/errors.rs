@@ -1,5 +1,9 @@
-use failure::{Context, Fail};
-use std::fmt;
+use crate::prelude::*;
+
+use extern::{
+    failure::Context,
+    std::fmt,
+};
 
 pub(crate) type Fallible<T> = Result<T, MathemaError>;
 
@@ -99,7 +103,7 @@ impl fmt::Display for MathemaError {
 }
 
 macro_rules! link_unexpected {
-    ($($t:ty),* $(,)*) => {
+    ($($t:path),* $(,)*) => {
         $(
             impl From<$t> for MathemaError {
                 fn from(value: $t) -> MathemaError {
@@ -111,20 +115,20 @@ macro_rules! link_unexpected {
 }
 
 link_unexpected! {
-    ::std::io::Error,
-    ::walkdir::Error,
-    ::git2::Error,
-    ::serde_json::Error,
+    extern::std::io::Error,
+    extern::walkdir::Error,
+    extern::git2::Error,
+    extern::serde_json::Error,
 }
 
-impl<E> From<::atomicwrites::Error<E>> for MathemaError
+impl<E> From<atomicwrites::Error<E>> for MathemaError
 where
     E: Into<MathemaError>,
 {
-    fn from(value: ::atomicwrites::Error<E>) -> MathemaError {
+    fn from(value: atomicwrites::Error<E>) -> MathemaError {
         match value {
-            ::atomicwrites::Error::Internal(e) => e.into(),
-            ::atomicwrites::Error::User(e) => e.into(),
+            atomicwrites::Error::Internal(e) => e.into(),
+            atomicwrites::Error::User(e) => e.into(),
         }
     }
 }

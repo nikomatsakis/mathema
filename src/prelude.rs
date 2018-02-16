@@ -1,31 +1,30 @@
 #![allow(unused_imports)] // FIXME too annoying right now
 
-crate use crate::throw;
-crate use crate::cards::{self, Card, CardLine, LineKind, Language};
-crate use crate::db::{Database, User, CardRecord, QuestionRecord, QuestionKind, QuestionResult};
-crate use crate::errors::{Fallible, MathemaError, MathemaErrorKind};
-crate use crate::git::MathemaRepository;
-crate use crate::line_parser::LineParser;
+crate use crate::{
+    cards::{self, Card, CardLine, LineKind, Language},
+    db::{Database, User, CardRecord, QuestionRecord, QuestionKind, QuestionResult},
+    errors::{Fallible, MathemaError, MathemaErrorKind},
+    git::MathemaRepository,
+    line_parser::LineParser,
+    throw,
+    uuid_ext::UuidExt,
+};
 
-crate use atomicwrites::{AtomicFile, OverwriteBehavior};
-crate use chrono::{DateTime, Utc, prelude::*};
-crate use failure::{bail, Error};
-crate use git2;
-crate use std::collections::{BTreeSet, BTreeMap, HashMap};
-crate use std::env;
-crate use std::mem;
-crate use std::io;
-crate use std::fs::{self, File};
-crate use std::path::{self, Path, PathBuf};
-crate use uuid::Uuid;
-
-#[allow(unused_imports)] // FIXME rustc bug
-crate use itertools::Itertools;
-
-#[allow(unused_imports)] // FIXME rustc bug
-crate use failure::{ResultExt};
-
-#[allow(unused_imports)] // FIXME rustc bug
-crate use crate::uuid_ext::UuidExt;
+crate use extern::{
+    atomicwrites::{self, AtomicFile, OverwriteBehavior},
+    chrono::{DateTime, Utc, prelude::*},
+    failure::{self, bail, Error, Fail, ResultExt},
+    git2,
+    itertools::Itertools,
+    serde_derive::{Serialize, Deserialize},
+    std::collections::{BTreeSet, BTreeMap, HashMap},
+    std::env,
+    std::mem,
+    std::io,
+    std::fs::{self, File},
+    std::path::{self, Path, PathBuf},
+    uuid::Uuid,
+    walkdir::WalkDir,
+};
 
 crate type UtcDateTime = DateTime<Utc>;

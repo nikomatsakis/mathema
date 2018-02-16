@@ -67,12 +67,12 @@ impl Database {
     }
 
     crate fn write_to(&self, writer: impl io::Write) -> Fallible<()> {
-        ::serde_json::ser::to_writer(writer, self)?;
+        extern::serde_json::ser::to_writer(writer, self)?;
         Ok(())
     }
 
     crate fn load_from(reader: impl io::Read) -> Fallible<Self> {
-        let db = ::serde_json::de::from_reader(reader)?;
+        let db = extern::serde_json::de::from_reader(reader)?;
         Ok(db)
     }
 

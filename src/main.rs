@@ -1,35 +1,18 @@
 #![allow(dead_code)]
 #![deny(unused_must_use)] // always a bug
 #![feature(crate_in_paths, conservative_impl_trait, crate_visibility_modifier, decl_macro,
-           dyn_trait, /*FIXME(rust-lang/rust#47075) extern_absolute_paths,*/
+           dyn_trait, /*FIXME(rust-lang/rust#47075) extern_absolute_paths,*/ extern_in_paths,
            in_band_lifetimes, match_default_bindings, nll,
            termination_trait, underscore_lifetimes, universal_impl_trait)]
 
 // FIXME can't use this because of format!
 //#![deny(elided_lifetime_in_path)]
 
-// FIXME rust-lang/rust#47075
-#[cfg(test)]
-extern crate assert_cli;
-extern crate atomicwrites;
-extern crate chrono;
-extern crate failure;
-extern crate git2;
-extern crate itertools;
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-extern crate structopt_derive;
-extern crate structopt;
-#[cfg(test)]
-extern crate tempdir;
-extern crate uuid;
-extern crate walkdir;
-
-use structopt_derive::StructOpt;
-use structopt::StructOpt;
 use crate::prelude::*;
+use extern::{
+    structopt_derive::StructOpt,
+    structopt::{self, StructOpt},
+};
 
 macro throw($t:expr) {
     return Err($t.into());

@@ -179,7 +179,7 @@ impl MathemaRepository {
 
         let mut results = vec![];
 
-        for entry in ::walkdir::WalkDir::new(&self.directory_path) {
+        for entry in WalkDir::new(&self.directory_path) {
             let entry = entry?;
 
             if !entry.file_type().is_file() {

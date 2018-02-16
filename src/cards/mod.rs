@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use std::fmt;
+use extern::std::fmt;
 
 #[derive(Debug)]
 crate struct CardSet {
