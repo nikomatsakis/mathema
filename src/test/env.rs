@@ -12,7 +12,7 @@
 
 use assert_cli::Assert;
 use std::io::{self, prelude::*};
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::path::Path;
 use tempdir::TempDir;
 
@@ -55,6 +55,13 @@ impl TestEnv {
     crate fn write_file(&mut self, name: &str, contents: &str) -> io::Result<()> {
         let path = self.temp_dir.path().join(name);
         let mut file = File::create(path)?;
+        file.write_all(contents.as_bytes())?;
+        Ok(())
+    }
+
+    crate fn append_file(&mut self, name: &str, contents: &str) -> io::Result<()> {
+        let path = self.temp_dir.path().join(name);
+        let mut file = OpenOptions::new().append(true).open(path)?;
         file.write_all(contents.as_bytes())?;
         Ok(())
     }

@@ -29,8 +29,10 @@ crate fn add(directory: &Path, file: String, force: bool) -> Fallible<()> {
     }
 
     // Otherwise, we can assign UUIDs to each card.
+    let mut uuids_assigned = 0;
     for c in &mut cards {
         if c.uuid.is_none() {
+            uuids_assigned += 1;
             c.uuid = Some(Uuid::fresh());
         }
     }
@@ -40,11 +42,20 @@ crate fn add(directory: &Path, file: String, force: bool) -> Fallible<()> {
 
     // Assuming that was successful, we can update the database.
     if is_new {
+        println!("`{}` added to database.", repo_path.display());
         repo.database_mut().card_files.push(repo_path);
+    } else {
+        println!("`{}` already found in database.", repo_path.display());
     }
 
     // Finally, write everything back out.
     repo.write_database()?;
+
+    if uuids_assigned == 1 {
+        println!("1 new card found.");
+    } else {
+        println!("{} new cards found.", uuids_assigned);
+    }
 
     Ok(())
 }

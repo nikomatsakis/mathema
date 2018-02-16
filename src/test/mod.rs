@@ -69,6 +69,11 @@ gr γιάσου
 
         env.assert_mathema("foo")
            .with_args(&["add", "bar.cards"])
+           .stdout()
+           .contains("`bar.cards` added to database.")
+           .and()
+           .stdout()
+           .contains("1 new card found.")
            .unwrap();
 
         env.assert_git("foo")
@@ -79,6 +84,51 @@ gr γιάσου
         env.assert_git("foo")
            .with_args(&["show", "--stat", "HEAD"])
            .stdout().contains(" bar.cards        | 3 +++")
+           .unwrap();
+    }
+}
+
+mathema_test! {
+    add_added_file is |env| {
+        env.assert_mathema("")
+           .with_args(&["new", "foo"])
+           .unwrap();
+
+        env.write_file("foo/bar.cards", "\
+en hello
+gr γιάσου
+")
+           .unwrap();
+
+        env.assert_mathema("foo")
+           .with_args(&["add", "bar.cards"])
+           .stdout()
+           .contains("`bar.cards` added to database.")
+           .unwrap();
+
+        env.append_file("foo/bar.cards", "
+en water
+gr νερό
+")
+           .unwrap();
+
+        env.assert_mathema("foo")
+           .with_args(&["add", "bar.cards"])
+           .stdout()
+           .contains("`bar.cards` already found in database.")
+           .and()
+           .stdout()
+           .contains("1 new card found.")
+           .unwrap();
+
+        env.assert_git("foo")
+           .with_args(&["status"])
+           .stdout().contains("nothing to commit, working directory clean")
+           .unwrap();
+
+        env.assert_git("foo")
+           .with_args(&["show", "--stat", "HEAD"])
+           .stdout().contains(" bar.cards | 4 ++++")
            .unwrap();
     }
 }
