@@ -54,3 +54,31 @@ gr γιάσου
            .unwrap();
     }
 }
+
+mathema_test! {
+    add_file is |env| {
+        env.assert_mathema("")
+           .with_args(&["new", "foo"])
+           .unwrap();
+
+        env.write_file("foo/bar.cards", "\
+en hello
+gr γιάσου
+")
+           .unwrap();
+
+        env.assert_mathema("foo")
+           .with_args(&["add", "bar.cards"])
+           .unwrap();
+
+        env.assert_git("foo")
+           .with_args(&["status"])
+           .stdout().contains("nothing to commit, working directory clean")
+           .unwrap();
+
+        env.assert_git("foo")
+           .with_args(&["show", "--stat", "HEAD"])
+           .stdout().contains(" bar.cards        | 3 +++")
+           .unwrap();
+    }
+}

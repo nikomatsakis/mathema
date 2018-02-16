@@ -75,4 +75,8 @@ impl Database {
         let db = ::serde_json::de::from_reader(reader)?;
         Ok(db)
     }
+
+    crate fn contains_card_file(&self, path: &Path) -> bool {
+        self.card_files.iter().any(|c| c == path)
+    }
 }

@@ -80,14 +80,19 @@ impl MathemaRepository {
         )
     }
 
-    /// Returns a path relative to the database directory. Returns
-    /// `None` if `absolute_path` is not within database directory.
-    fn relative_path(&self, absolute_path: impl AsRef<Path>) -> Option<PathBuf> {
-        let absolute_path = absolute_path.as_ref();
-        assert!(absolute_path.is_absolute());
+    /// Returns a path relative to the database directory. Returns an
+    /// error if `path` is not within database directory (or if it is,
+    /// e.g., a symlink to something outside the directory).
+    pub fn path_in_repo(&self, path: impl AsRef<Path>) -> Fallible<PathBuf> {
+        let original_path = path.as_ref();
+        let absolute_path = original_path.canonicalize()?;
         match absolute_path.strip_prefix(&self.directory_path) {
-            Ok(p) => Some(p.to_owned()),
-            Err(_) => None,
+            Ok(p) => Ok(p.to_owned()),
+            Err(_) => {
+                throw!(MathemaErrorKind::NotInRepo {
+                    file: original_path.display().to_string(),
+                });
+            }
         }
     }
 
@@ -103,11 +108,8 @@ impl MathemaRepository {
         file_name: &Path,
         op: impl FnMut(&mut File) -> Fallible<()>,
     ) -> Fallible<()> {
-        match AtomicFile::new(file_name, OverwriteBehavior::AllowOverwrite).write(op) {
-            Ok(()) => Ok(()),
-            Err(::atomicwrites::Error::Internal(e)) => return Err(e.into()),
-            Err(::atomicwrites::Error::User(e)) => return Err(e),
-        }
+        AtomicFile::new(file_name, OverwriteBehavior::AllowOverwrite).write(op)?;
+        Ok(())
     }
 
     crate fn read_from<R>(
@@ -127,8 +129,19 @@ impl MathemaRepository {
             }
         })?;
 
+        self.git_commit()?;
+
+        Ok(())
+    }
+
+    /// Creates a new git commit, adding in the changes from all of
+    /// the registered `cards` files as well as the index.
+    fn git_commit(&mut self) -> Fallible<()> {
         let mut index = self.repository.index()?;
         index.add_path(Path::new(RELATIVE_DB_PATH))?;
+        for card_file in &self.database.card_files {
+            index.add_path(card_file)?;
+        }
         index.write()?;
 
         let tree_id = self.repository.index()?.write_tree()?;
@@ -181,6 +194,10 @@ impl MathemaRepository {
             {
                 continue;
             }
+
+            // My assumption here is that walkdir will always yield up
+            // paths relative to its starting point. I wonder if
+            // that's true. =)
 
             match entry.path().strip_prefix(&self.directory_path) {
                 Ok(p) => results.push(p.to_owned()),

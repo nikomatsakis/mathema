@@ -1,5 +1,3 @@
-// FIXME rust-lang/rust#47075
-
 use crate::prelude::*;
 
 crate trait UuidExt {

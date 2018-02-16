@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use std::fmt;
 
 #[derive(Debug)]
 crate struct CardSet {
@@ -90,24 +91,88 @@ fn parse_card(source_file: &Path, parser: &mut LineParser) -> Fallible<Card> {
             });
         } else {
             let word0 = line.split_whitespace().next().unwrap();
-            let kind = match word0 {
-                "en" => LineKind::Meaning(Language::English),
-                "gr" => LineKind::Meaning(Language::Greek),
-                _ => {
-                    return Err(MathemaErrorKind::UnrecognizedLineKind {
-                        source_line: parser.line_number(),
-                        kind: word0.to_string(),
-                    }.into());
+            let remainder = &line[word0.len()..].trim();
+
+            if word0 == "uuid" {
+                if card.uuid.is_some() {
+                    throw!(MathemaErrorKind::PreexistingUUID {
+                        file: source_file.display().to_string(),
+                        line: card.start_line,
+                    });
                 }
-            };
-            card.lines.push(CardLine {
-                kind: kind,
-                text: line[word0.len()..].trim().to_owned(),
-            });
+                match Uuid::parse_str(remainder) {
+                    Ok(u) => card.uuid = Some(u),
+                    Err(_) => throw!(MathemaErrorKind::InvalidUUID {
+                        file: source_file.display().to_string(),
+                        line: card.start_line,
+                    }),
+                }
+            } else {
+                let kind = match word0 {
+                    "en" => LineKind::Meaning(Language::English),
+                    "gr" => LineKind::Meaning(Language::Greek),
+                    _ => {
+                        throw!(MathemaErrorKind::UnrecognizedLineKind {
+                            source_line: parser.line_number(),
+                            kind: word0.to_string(),
+                        });
+                    }
+                };
+                card.lines.push(CardLine {
+                    kind: kind,
+                    text: remainder.to_string(),
+                });
+            }
         }
 
         parser.read_next_line()?;
     }
 
     Ok(card)
+}
+
+crate fn write_cards_file(target_file: &Path, cards: &[Card]) -> Fallible<()> {
+    AtomicFile::new(target_file.canonicalize()?, OverwriteBehavior::AllowOverwrite).write(|f| {
+        write_cards_to(f, cards)
+    })?;
+
+    Ok(())
+}
+
+crate fn write_cards_to(
+    output: &mut dyn io::Write,
+    cards: &[Card],
+) -> Fallible<()> {
+    let mut sep = "";
+    for card in cards {
+        write!(output, "{}", sep)?;
+        sep = "\n";
+
+        if let Some(u) = card.uuid {
+            writeln!(output, "uuid {}", u)?;
+        }
+
+        for line in &card.lines {
+            writeln!(output, "{} {}", line.kind, line.text)?;
+        }
+    }
+    Ok(())
+}
+
+impl fmt::Display for LineKind {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            LineKind::Comment => write!(fmt, "#"),
+            LineKind::Meaning(lang) => write!(fmt, "{}", lang),
+        }
+    }
+}
+
+impl fmt::Display for Language {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Language::English => write!(fmt, "en"),
+            Language::Greek => write!(fmt, "gr"),
+        }
+    }
 }

@@ -29,8 +29,11 @@ extern crate walkdir;
 
 use structopt_derive::StructOpt;
 use structopt::StructOpt;
-use failure::Error;
-use std::process;
+use crate::prelude::*;
+
+macro throw($t:expr) {
+    return Err($t.into());
+}
 
 mod add;
 mod cards;
@@ -47,10 +50,19 @@ mod uuid_ext;
 /// Do fancy things
 #[derive(StructOpt, Debug)]
 #[structopt(name = "mathema", about = "a CLI for flashcards")]
-enum Mathema {
-    #[structopt(name = "quiz", about = "test yourself")] Quiz {},
+struct Mathema {
+    #[structopt(name = "directory", help = "where your existing cards can be found")]
+    directory: Option<String>,
 
-    #[structopt(name = "dump", about = "dump info about cards")] Dump {},
+    #[structopt(subcommand)]
+    command: MathemaCommand,
+}
+
+#[derive(StructOpt, Debug)]
+enum MathemaCommand {
+    #[structopt(name = "quiz", about = "test yourself")] Quiz,
+
+    #[structopt(name = "dump", about = "dump info about cards")] Dump,
 
     #[structopt(name = "new", about = "create a new deck of cards")]
     New {
@@ -58,16 +70,16 @@ enum Mathema {
         directory: String,
     },
 
-    #[structopt(name = "status", about = "create a new deck of cards")]
-    Status {
-        #[structopt(help = "directory containing your cards")]
-        directory: Option<String>,
-    },
+    #[structopt(name = "status", about = "check on the status of your cards")]
+    Status,
 
     #[structopt(name = "add", about = "add new cards from file")]
     Add {
         #[structopt(help = "new card file")]
         file: String,
+
+        #[structopt(short = "f", long = "force", help = "continue despite ignorable errors")]
+        force: bool,
     },
 }
 
@@ -76,30 +88,37 @@ fn main() {
         Ok(()) => {}
         Err(err) => {
             eprintln!("{}", err);
-            process::exit(1);
+            ::std::process::exit(1);
         }
     }
 }
 
 fn main1() -> Result<(), Error> {
-    match Mathema::from_args() {
-        Mathema::Quiz {} => {
+    let args = Mathema::from_args();
+
+    let existing_directory = &match args.directory {
+        Some(s) => Path::new(&s).to_owned(),
+        None => env::current_dir()?,
+    };
+
+    match args.command {
+        MathemaCommand::Quiz => {
             println!("Don't you feel smarter?");
         }
 
-        Mathema::New { directory } => {
+        MathemaCommand::New { directory } => {
             new::new(directory)?;
         }
 
-        Mathema::Status { directory } => {
-            status::status(directory)?;
+        MathemaCommand::Status => {
+            status::status(&existing_directory)?;
         }
 
-        Mathema::Add { file } => {
-            add::add(file)?;
+        MathemaCommand::Add { file, force } => {
+            add::add(&existing_directory, file, force)?;
         }
 
-        Mathema::Dump {} => {
+        MathemaCommand::Dump {} => {
             println!("Dumping cards");
         }
     }

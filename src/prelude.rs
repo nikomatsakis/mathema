@@ -1,5 +1,6 @@
 #![allow(unused_imports)] // FIXME too annoying right now
 
+crate use crate::throw;
 crate use crate::cards::{self, Card, CardLine, LineKind, Language};
 crate use crate::db::{Database, User, CardRecord, QuestionRecord, QuestionKind, QuestionResult};
 crate use crate::errors::{Fallible, MathemaError, MathemaErrorKind};

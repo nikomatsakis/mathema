@@ -16,6 +16,24 @@ pub(crate) enum MathemaErrorKind {
         kind: String,
     },
 
+    #[fail(display = "the cards file `{}` does not appear to be in the repository directory",
+           file)]
+    NotInRepo {
+        file: String,
+    },
+
+    #[fail(display = "the card on line {} of `{}` already has a UUID assigned", line, file)]
+    PreexistingUUID {
+        file: String,
+        line: u64,
+    },
+
+    #[fail(display = "the card on line {} of `{}` has an invalid UUID", line, file)]
+    InvalidUUID {
+        file: String,
+        line: u64,
+    },
+
     #[fail(display = "card on line {} of `{}` does not have a UUID; re-run `mathema add`?",
            source_file, source_line)]
     CardWithNoUuid {
@@ -44,8 +62,7 @@ pub(crate) enum MathemaErrorKind {
         directory_path: String,
     },
 
-    #[fail(display = "Unexpected error encountered")]
-    Unexpected,
+    #[fail(display = "Unexpected error encountered")] Unexpected,
 }
 
 impl From<Context<MathemaErrorKind>> for MathemaError {
@@ -98,4 +115,16 @@ link_unexpected! {
     ::walkdir::Error,
     ::git2::Error,
     ::serde_json::Error,
+}
+
+impl<E> From<::atomicwrites::Error<E>> for MathemaError
+where
+    E: Into<MathemaError>,
+{
+    fn from(value: ::atomicwrites::Error<E>) -> MathemaError {
+        match value {
+            ::atomicwrites::Error::Internal(e) => e.into(),
+            ::atomicwrites::Error::User(e) => e.into(),
+        }
+    }
 }

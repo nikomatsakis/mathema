@@ -2,12 +2,7 @@
 
 use crate::prelude::*;
 
-crate fn status(directory: Option<String>) -> Fallible<()> {
-    let directory = &match directory {
-        Some(s) => Path::new(&s).to_owned(),
-        None => env::current_dir()?,
-    };
-
+crate fn status(directory: &Path) -> Fallible<()> {
     let repo = MathemaRepository::open(&directory)?;
     let mut needs_separator = false;
 
