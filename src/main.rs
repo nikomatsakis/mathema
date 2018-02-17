@@ -27,6 +27,7 @@ mod line_parser;
 mod new;
 mod status;
 mod prelude;
+mod quiz;
 mod test;
 mod uuid_ext;
 
@@ -36,6 +37,9 @@ mod uuid_ext;
 struct Mathema {
     #[structopt(name = "directory", help = "where your existing cards can be found")]
     directory: Option<String>,
+
+    #[structopt(short = "f", long = "force", help = "continue despite ignorable errors")]
+    force: bool,
 
     #[structopt(subcommand)]
     command: MathemaCommand,
@@ -60,9 +64,6 @@ enum MathemaCommand {
     Add {
         #[structopt(help = "new card file")]
         file: String,
-
-        #[structopt(short = "f", long = "force", help = "continue despite ignorable errors")]
-        force: bool,
     },
 }
 
@@ -86,7 +87,7 @@ fn main1() -> Result<(), Error> {
 
     match args.command {
         MathemaCommand::Quiz => {
-            println!("Don't you feel smarter?");
+            quiz::quiz(&existing_directory, args.force)?;
         }
 
         MathemaCommand::New { directory } => {
@@ -97,8 +98,8 @@ fn main1() -> Result<(), Error> {
             status::status(&existing_directory)?;
         }
 
-        MathemaCommand::Add { file, force } => {
-            add::add(&existing_directory, file, force)?;
+        MathemaCommand::Add { file } => {
+            add::add(&existing_directory, file, args.force)?;
         }
 
         MathemaCommand::Dump {} => {

@@ -8,7 +8,6 @@ crate struct CardSet {
 
 #[derive(Debug)]
 crate struct Card {
-    crate source_file: PathBuf,
     crate uuid: Option<Uuid>,
     crate start_line: u64,
     crate lines: Vec<CardLine>,
@@ -76,7 +75,6 @@ crate fn parse_cards_file_from(
 
 fn parse_card(source_file: &Path, parser: &mut LineParser) -> Fallible<Card> {
     let mut card = Card {
-        source_file: source_file.to_owned(),
         uuid: None,
         start_line: parser.line_number(),
         lines: vec![],

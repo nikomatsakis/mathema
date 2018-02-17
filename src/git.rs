@@ -9,6 +9,15 @@ crate struct MathemaRepository {
     cards: HashMap<Uuid, Card>,
 }
 
+#[derive(Default)]
+crate struct Status {
+    crate unknown_card_files: Vec<PathBuf>,
+    crate card_files_with_missing_uuids: BTreeMap<PathBuf, Vec<u64>>,
+    crate duplicate_uuids: Vec<Uuid>,
+    crate valid_cards: usize,
+    crate valid_card_files: usize,
+}
+
 const RELATIVE_DB_PATH: &str = ".mathema-v1.json";
 
 impl MathemaRepository {
@@ -215,5 +224,123 @@ impl MathemaRepository {
     crate fn parse_card_file_from_repo(&self, relative_path: &Path) -> Fallible<Vec<Card>> {
         let file = self.open_file(relative_path)?;
         Ok(cards::parse_cards_file_from(relative_path, file)?)
+    }
+
+    crate fn load_cards(&mut self) -> Fallible<Status> {
+        let mut status = Status::default();
+
+        // Compare all the card files that are registered
+        // with those that exist in the directory.
+        let mut all_card_files: BTreeSet<PathBuf> = self.all_card_files()?.into_iter().collect();
+        for card_file in &self.database.card_files {
+            all_card_files.remove(card_file);
+        }
+        status.unknown_card_files.extend(all_card_files);
+
+        // Load the card files that are registered.
+        let mut cards_with_missing_uuids = vec![];
+        for card_file in &self.database.card_files {
+            status.valid_card_files += 1;
+
+            let cards = self.parse_card_file_from_repo(card_file)?;
+            for card in cards {
+                if let Some(uuid) = card.uuid {
+                    if !self.cards.contains_key(&uuid) {
+                        self.cards.insert(uuid, card);
+                        status.valid_cards += 1;
+                    } else {
+                        status.duplicate_uuids.push(uuid);
+                    }
+                } else {
+                    cards_with_missing_uuids.push(card);
+                }
+            }
+        }
+
+        Ok(status)
+    }
+}
+
+impl Status {
+    crate fn contains_warnings(&self) -> bool {
+        !self.unknown_card_files.is_empty() || self.contains_fatal()
+    }
+
+    crate fn contains_fatal(&self) -> bool {
+        !self.card_files_with_missing_uuids.is_empty() ||
+            !self.duplicate_uuids.is_empty()
+    }
+
+    /// Issues warnings. Returns true if fatal warnings were emitted,
+    /// and hence execution should not continue.
+    crate fn warn_if_needed(&self, force: bool) -> bool {
+        if !self.contains_warnings() {
+            return false;
+        }
+
+        self.warn();
+
+        // Cannot continue with missing or duplicate UUIDs.
+        if self.contains_fatal() {
+            return true;
+        }
+
+        // But otherwise, if the user said to "force", we can keep
+        // going.
+        if force {
+            return false;
+        }
+
+        true
+    }
+
+    fn warn(&self) {
+        let mut needs_separator = false;
+
+        if !self.unknown_card_files.is_empty() {
+            println!("Unknown card files (try `mathema add`):");
+            for unregistered_card_file in &self.unknown_card_files {
+                println!("  {}", unregistered_card_file.display());
+            }
+            needs_separator = true;
+        }
+
+        if !self.card_files_with_missing_uuids.is_empty() {
+            if mem::replace(&mut needs_separator, true) {
+                println!("");
+            }
+            println!("Files containing cards with missing UUIDs (try `mathema add`):");
+            for (filename, lines) in &self.card_files_with_missing_uuids {
+                if lines.len() == 1 {
+                    println!("  {} (on line {})", filename.display(), lines[0]);
+                } else if lines.len() == 2 {
+                    println!(
+                        "  {} (on lines {} and {})",
+                        filename.display(),
+                        lines[0],
+                        lines[1]
+                    );
+                } else {
+                    let (tail, prefix) = lines.split_last().unwrap();
+                    let lines_str: String = prefix.iter().map(|line| format!("{}, ", line)).collect();
+                    println!(
+                        "  {} (on lines {}, and {})",
+                        filename.display(),
+                        lines_str,
+                        tail
+                    );
+                }
+            }
+        }
+
+        if !self.duplicate_uuids.is_empty() {
+            if mem::replace(&mut needs_separator, true) {
+                println!("");
+            }
+            println!("Duplicate UUIDs found (try `grep` to find them):");
+            for uuid in &self.duplicate_uuids {
+                println!("  {}", uuid);
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ crate use crate::{
     db::{Database, User, CardRecord, QuestionRecord, QuestionKind, QuestionResult},
     errors::{Fallible, MathemaError, MathemaErrorKind},
     git::MathemaRepository,
+    status::Status,
     line_parser::LineParser,
     throw,
     uuid_ext::UuidExt,
