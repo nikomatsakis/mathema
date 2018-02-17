@@ -28,6 +28,7 @@ mod new;
 mod status;
 mod prelude;
 mod quiz;
+mod selection;
 mod test;
 mod uuid_ext;
 

@@ -25,7 +25,7 @@ crate enum LineKind {
     Meaning(Language),
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
 pub(crate) enum Language {
     English,
     Greek,

@@ -13,7 +13,7 @@ crate use crate::{
 
 crate use extern::{
     atomicwrites::{self, AtomicFile, OverwriteBehavior},
-    chrono::{DateTime, Utc, prelude::*},
+    chrono::{DateTime, Duration, Utc, prelude::*},
     failure::{self, bail, Error, Fail, ResultExt},
     git2,
     itertools::Itertools,
@@ -24,6 +24,7 @@ crate use extern::{
     std::io,
     std::fs::{self, File},
     std::path::{self, Path, PathBuf},
+    std::u64,
     uuid::Uuid,
     walkdir::WalkDir,
 };
