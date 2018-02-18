@@ -2,7 +2,7 @@
 
 crate use crate::{
     cards::{self, Card, CardLine, LineKind, Language},
-    db::{Database, User, CardRecord, QuestionRecord, QuestionKind, QuestionResult},
+    db::{Database, User, CardRecord, QuestionRecord, QuestionResult, QuestionKind},
     errors::{Fallible, MathemaError, MathemaErrorKind},
     git::MathemaRepository,
     status::Status,

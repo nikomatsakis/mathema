@@ -19,7 +19,7 @@ pub(crate) struct User {
     pub(crate) records: HashMap<Uuid, CardRecord>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub(crate) struct CardRecord {
     /// Sorted by date, always.
     pub(crate) questions: HashMap<QuestionKind, Vec<QuestionRecord>>,
@@ -80,6 +80,14 @@ impl Database {
 }
 
 impl CardRecord {
+    crate fn push_question_record(
+        &mut self,
+        kind: QuestionKind,
+        record: QuestionRecord,
+    ) {
+        self.questions.entry(kind).or_insert(vec![]).push(record);
+    }
+
     crate fn questions(
         &self,
         kind: QuestionKind,
