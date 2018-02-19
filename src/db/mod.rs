@@ -88,6 +88,13 @@ impl CardRecord {
         self.questions.entry(kind).or_insert(vec![]).push(record);
     }
 
+    crate fn last_asked(
+        &self,
+        kind: QuestionKind,
+    ) -> Option<UtcDateTime> {
+        self.questions(kind).last()?.date
+    }
+
     crate fn questions(
         &self,
         kind: QuestionKind,

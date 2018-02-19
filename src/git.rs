@@ -74,6 +74,10 @@ impl MathemaRepository {
         &mut self.database
     }
 
+    crate fn cards(&self) -> &HashMap<Uuid, Card> {
+        &self.cards
+    }
+
     /// Makes a "database-relative" path into an absolute path.
     fn absolute_path(&self, relative_path: impl AsRef<Path>) -> PathBuf {
         self.directory_path.join(relative_path)

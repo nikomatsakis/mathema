@@ -25,13 +25,31 @@ crate enum LineKind {
     Meaning(Language),
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Hash)]
 pub(crate) enum Language {
     English,
     Greek,
 }
 
 impl Card {
+    crate fn suitable_questions(&self) -> Vec<QuestionKind> {
+        let mut questions = Vec::with_capacity(2);
+
+        let languages: BTreeSet<_> = self.lines
+            .iter()
+            .filter_map(|line| match line.kind {
+                LineKind::Meaning(l) => Some(l),
+                _ => None,
+            })
+            .collect();
+
+        for (l0, l1) in languages.iter().cloned().tuple_combinations() {
+            questions.push(QuestionKind::Translate { from: l0, to: l1 });
+        }
+
+        questions
+    }
+
     crate fn meanings(&self, language: Language) -> impl Iterator<Item = &str> + '_ {
         let kind = LineKind::Meaning(language);
         self.lines_with_kind(kind)
@@ -50,10 +68,7 @@ crate fn parse_cards_file(source_file: &Path) -> Fallible<Vec<Card>> {
     parse_cards_file_from(source_file, input)
 }
 
-crate fn parse_cards_file_from(
-    source_file: &Path,
-    input: File,
-) -> Fallible<Vec<Card>> {
+crate fn parse_cards_file_from(source_file: &Path, input: File) -> Fallible<Vec<Card>> {
     // Annoying note:
     // - Should I be adding context here? Do I have to do it on **every** `?`
     // - Feels like I'd like the *caller* to tag with source file but for *me*
@@ -130,17 +145,15 @@ fn parse_card(source_file: &Path, parser: &mut LineParser) -> Fallible<Card> {
 }
 
 crate fn write_cards_file(target_file: &Path, cards: &[Card]) -> Fallible<()> {
-    AtomicFile::new(target_file.canonicalize()?, OverwriteBehavior::AllowOverwrite).write(|f| {
-        write_cards_to(f, cards)
-    })?;
+    AtomicFile::new(
+        target_file.canonicalize()?,
+        OverwriteBehavior::AllowOverwrite,
+    ).write(|f| write_cards_to(f, cards))?;
 
     Ok(())
 }
 
-crate fn write_cards_to(
-    output: &mut dyn io::Write,
-    cards: &[Card],
-) -> Fallible<()> {
+crate fn write_cards_to(output: &mut io::Write, cards: &[Card]) -> Fallible<()> {
     let mut sep = "";
     for card in cards {
         write!(output, "{}", sep)?;

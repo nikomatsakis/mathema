@@ -17,6 +17,7 @@ crate use extern::{
     failure::{self, bail, Error, Fail, ResultExt},
     git2,
     itertools::Itertools,
+    rand::{self, Rng},
     serde_derive::{Serialize, Deserialize},
     std::collections::{BTreeSet, BTreeMap, HashMap},
     std::env,
