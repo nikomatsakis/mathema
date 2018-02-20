@@ -3,6 +3,7 @@
 use crate::prelude::*;
 
 crate struct MathemaRepository {
+    dry_run: bool,
     directory_path: PathBuf,
     repository: git2::Repository,
     database: Database,
@@ -36,6 +37,7 @@ impl MathemaRepository {
             directory_path,
             repository,
             database,
+            dry_run: false,
             cards: HashMap::new(),
         };
         repository.write_database()?;
@@ -43,7 +45,11 @@ impl MathemaRepository {
         Ok(repository)
     }
 
-    crate fn open(directory: impl AsRef<Path>) -> Fallible<MathemaRepository> {
+    crate fn open(options: &MathemaOptions) -> Fallible<MathemaRepository> {
+        Self::open_full(options.dry_run, options.directory()?)
+    }
+
+    crate fn open_full(dry_run: bool, directory: impl AsRef<Path>) -> Fallible<MathemaRepository> {
         let directory_path = directory.as_ref().to_owned();
         let db_path = directory_path.join(RELATIVE_DB_PATH);
         let database = Self::read_from(&db_path, |f| Database::load_from(f)).with_context(|_| {
@@ -62,6 +68,7 @@ impl MathemaRepository {
             directory_path,
             repository,
             database,
+            dry_run,
             cards: HashMap::new(),
         })
     }
@@ -76,6 +83,10 @@ impl MathemaRepository {
 
     crate fn cards(&self) -> &HashMap<Uuid, Card> {
         &self.cards
+    }
+
+    crate fn card_uuids(&self) -> impl Iterator<Item = Uuid> + '_ {
+        self.cards.keys().cloned()
     }
 
     /// Makes a "database-relative" path into an absolute path.
@@ -117,10 +128,12 @@ impl MathemaRepository {
         Ok(git2::Signature::now("mathema", "mathema@example.com")?)
     }
 
-    crate fn write_file(
+    fn write_file(
+        &self,
         file_name: &Path,
         op: impl FnMut(&mut File) -> Fallible<()>,
     ) -> Fallible<()> {
+        assert!(!self.dry_run);
         AtomicFile::new(file_name, OverwriteBehavior::AllowOverwrite).write(op)?;
         Ok(())
     }
@@ -135,14 +148,16 @@ impl MathemaRepository {
     }
 
     crate fn write_database(&mut self) -> Fallible<()> {
-        let db_path = self.db_path();
-        Self::write_file(&self.db_path(), |f| self.database.write_to(f)).with_context(|_| {
-            MathemaErrorKind::AccessingFile {
-                file: db_path.display().to_string(),
-            }
-        })?;
+        if !self.dry_run {
+            let db_path = self.db_path();
+            self.write_file(&self.db_path(), |f| self.database.write_to(f)).with_context(|_| {
+                MathemaErrorKind::AccessingFile {
+                    file: db_path.display().to_string(),
+                }
+            })?;
 
-        self.git_commit()?;
+            self.git_commit()?;
+        }
 
         Ok(())
     }
@@ -150,6 +165,7 @@ impl MathemaRepository {
     /// Creates a new git commit, adding in the changes from all of
     /// the registered `cards` files as well as the index.
     fn git_commit(&mut self) -> Fallible<()> {
+        assert!(!self.dry_run);
         let mut index = self.repository.index()?;
         index.add_path(Path::new(RELATIVE_DB_PATH))?;
         for card_file in &self.database.card_files {

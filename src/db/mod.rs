@@ -35,7 +35,7 @@ pub(crate) struct QuestionRecord {
     pub(crate) result: QuestionResult,
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) enum QuestionKind {
     Translate { from: Language, to: Language },
 }
@@ -92,7 +92,7 @@ impl CardRecord {
         &self,
         kind: QuestionKind,
     ) -> Option<UtcDateTime> {
-        self.questions(kind).last()?.date
+        Some(self.questions(kind).last()?.date)
     }
 
     crate fn questions(

@@ -33,22 +33,28 @@ mod test;
 mod uuid_ext;
 
 /// Do fancy things
-#[derive(StructOpt, Debug)]
+#[derive(StructOpt, Clone, Debug)]
 #[structopt(name = "mathema", about = "a CLI for flashcards")]
-struct Mathema {
+struct MathemaOptions {
     #[structopt(name = "directory", help = "where your existing cards can be found")]
     directory: Option<String>,
 
     #[structopt(short = "f", long = "force", help = "continue despite ignorable errors")]
     force: bool,
 
+    #[structopt(long = "dry-run", help = "do not write changes to disk")]
+    dry_run: bool,
+
     #[structopt(subcommand)]
     command: MathemaCommand,
 }
 
-#[derive(StructOpt, Debug)]
+#[derive(StructOpt, Clone, Debug)]
 enum MathemaCommand {
-    #[structopt(name = "quiz", about = "test yourself")] Quiz,
+    #[structopt(name = "quiz", about = "test yourself")] Quiz {
+        #[structopt(help = "what language do you want to learn")]
+        language: String
+    },
 
     #[structopt(name = "dump", about = "dump info about cards")] Dump,
 
@@ -79,28 +85,23 @@ fn main() {
 }
 
 fn main1() -> Result<(), Error> {
-    let args = Mathema::from_args();
+    let args = &MathemaOptions::from_args();
 
-    let existing_directory = &match args.directory {
-        Some(s) => Path::new(&s).to_owned(),
-        None => env::current_dir()?,
-    };
-
-    match args.command {
-        MathemaCommand::Quiz => {
-            quiz::quiz(&existing_directory, args.force)?;
+    match &args.command {
+        MathemaCommand::Quiz { language } => {
+            quiz::quiz(args, language)?;
         }
 
         MathemaCommand::New { directory } => {
-            new::new(directory)?;
+            new::new(args, directory)?;
         }
 
         MathemaCommand::Status => {
-            status::status(&existing_directory)?;
+            status::status(args)?;
         }
 
         MathemaCommand::Add { file } => {
-            add::add(&existing_directory, file, args.force)?;
+            add::add(args, file)?;
         }
 
         MathemaCommand::Dump {} => {
@@ -108,4 +109,13 @@ fn main1() -> Result<(), Error> {
         }
     }
     Ok(())
+}
+
+impl MathemaOptions {
+    crate fn directory(&self) -> Fallible<PathBuf> {
+        Ok(match &self.directory {
+            Some(s) => Path::new(s).to_owned(),
+            None => env::current_dir()?,
+        })
+    }
 }

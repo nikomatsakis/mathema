@@ -2,10 +2,10 @@
 
 use crate::prelude::*;
 
-crate fn add(directory: &Path, file: String, force: bool) -> Fallible<()> {
-    let repo = &mut MathemaRepository::open(directory)?;
+crate fn add(options: &MathemaOptions, file: &str) -> Fallible<()> {
+    let repo = &mut MathemaRepository::open(options)?;
 
-    let file = &PathBuf::from(file);
+    let file = Path::new(file);
 
     let mut cards =
         cards::parse_cards_file(file).with_context(|_| MathemaErrorKind::AccessingFile {
@@ -17,7 +17,7 @@ crate fn add(directory: &Path, file: String, force: bool) -> Fallible<()> {
     let is_new = !repo.database().contains_card_file(&repo_path);
 
     // If the file has not yet been added, there should be no UUIDs.
-    if is_new && !force {
+    if is_new && !options.force {
         for c in &cards {
             if c.uuid.is_some() {
                 throw!(MathemaErrorKind::PreexistingUUID {

@@ -20,6 +20,22 @@ pub(crate) enum MathemaErrorKind {
         kind: String,
     },
 
+    #[fail(display = "`{}` is not a recognized language", text)]
+    UnrecognizedLanguage {
+        text: String,
+    },
+
+    #[fail(display = "the option `{}` is not compatible with the command `{}`", option, command)]
+    IncompatibleOption {
+        option: &'static str,
+        command: &'static str,
+    },
+
+    #[fail(display = "don't know how to quiz you in `{}`", language)]
+    DontKnowHowToQuiz {
+        language: Language,
+    },
+
     #[fail(display = "the cards file `{}` does not appear to be in the repository directory",
            file)]
     NotInRepo {

@@ -3,44 +3,54 @@ use crate::prelude::*;
 mod test;
 
 crate fn expired_cards(
+    rng: &mut impl Rng,
     repo: &MathemaRepository,
+    suitable_questions: &[QuestionKind],
 ) -> Vec<(Uuid, QuestionKind)> {
-    let mut expired: Vec<(Duration, Uuid, QuestionKind)> = vec![];
+    // Collect the expired cards in this vector.
+    let mut expired: Vec<(Duration, usize, Uuid, QuestionKind)> = vec![];
     let mut never_asked: Vec<(Uuid, QuestionKind)> = vec![];
 
     let db = repo.database();
-    let now = UtcDateTime::now();
-    for (&uuid, card) in repo.cards() {
+    let now = Utc::now();
+    for uuid in repo.card_uuids() {
         let record = db.card_record(uuid);
-        for qk in card.suitable_questions() {
-            match expiration_duration(qk, record) {
-                None => never_asked.push((uuid, qk)),
-                Some(duration) => {
-                    let expiration_date = record.last_asked(qk) + duration;
+        for &qk in suitable_questions {
+            if let Some(record) = record {
+                if let Some(duration) = expiration_duration(qk, record) {
+                    let expiration_date = record.last_asked(qk).unwrap() + duration;
                     if now < expiration_date {
                         let expired_by = now.signed_duration_since(expiration_date);
-                        expired.push((expired_by, uuid, qk));
+                        expired.push((expired_by, rng.gen(), uuid, qk));
                     }
+                } else {
+                    never_asked.push((uuid, qk));
                 }
+            } else {
+                never_asked.push((uuid, qk));
             }
         }
     }
 
-    // Put the ones that are expired by the most in front of the line:
+    // Sort the expired cards by when they are expired (and then randomly after that).
     expired.sort();
-    expired.rev();
+    let mut expired_remaining = expired.len();
+    let mut expired = expired.into_iter().rev().map(|(_, _, uuid, qk)| (uuid, qk));
 
     // Order the cards never asked randomly.
-    let mut rng = rand::thread_rng();
+    let mut never_asked_remaining = never_asked.len();
     rng.shuffle(&mut never_asked);
+    let mut never_asked = never_asked.into_iter();
 
     // Intersperse new things amongst the expired things randomly.
     let mut final_list = vec![];
-    while !expired.is_empty() && !never_asked.is_empty() {
+    while expired_remaining > 0 && never_asked_remaining > 0 {
         if rng.gen::<bool>() {
-            final_list.extend(expired.pop());
+            final_list.extend(expired.next());
+            expired_remaining -= 1;
         } else {
-            final_list.extend(never_asked.pop());
+            final_list.extend(never_asked.next());
+            never_asked_remaining -= 1;
         }
     }
     final_list.extend(expired);
@@ -76,10 +86,7 @@ crate fn expired_cards(
 //
 //
 
-fn expiration_duration(
-    question_kind: QuestionKind,
-    record: &CardRecord,
-) -> Option<Duration> {
+fn expiration_duration(question_kind: QuestionKind, record: &CardRecord) -> Option<Duration> {
     let last_question = record.questions(question_kind).last()?;
     let durations = record
         .question_pairs(question_kind)

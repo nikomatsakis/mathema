@@ -1,10 +1,12 @@
 #![allow(unused_imports)] // FIXME too annoying right now
 
 crate use crate::{
+    MathemaOptions,
     cards::{self, Card, CardLine, LineKind, Language},
     db::{Database, User, CardRecord, QuestionRecord, QuestionResult, QuestionKind},
     errors::{Fallible, MathemaError, MathemaErrorKind},
     git::MathemaRepository,
+    selection,
     status::Status,
     line_parser::LineParser,
     throw,
@@ -25,6 +27,7 @@ crate use extern::{
     std::io,
     std::fs::{self, File},
     std::path::{self, Path, PathBuf},
+    std::str::FromStr,
     std::u64,
     uuid::Uuid,
     walkdir::WalkDir,

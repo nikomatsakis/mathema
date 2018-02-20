@@ -32,24 +32,6 @@ pub(crate) enum Language {
 }
 
 impl Card {
-    crate fn suitable_questions(&self) -> Vec<QuestionKind> {
-        let mut questions = Vec::with_capacity(2);
-
-        let languages: BTreeSet<_> = self.lines
-            .iter()
-            .filter_map(|line| match line.kind {
-                LineKind::Meaning(l) => Some(l),
-                _ => None,
-            })
-            .collect();
-
-        for (l0, l1) in languages.iter().cloned().tuple_combinations() {
-            questions.push(QuestionKind::Translate { from: l0, to: l1 });
-        }
-
-        questions
-    }
-
     crate fn meanings(&self, language: Language) -> impl Iterator<Item = &str> + '_ {
         let kind = LineKind::Meaning(language);
         self.lines_with_kind(kind)
@@ -120,20 +102,16 @@ fn parse_card(source_file: &Path, parser: &mut LineParser) -> Fallible<Card> {
                         line: card.start_line,
                     }),
                 }
-            } else {
-                let kind = match word0 {
-                    "en" => LineKind::Meaning(Language::English),
-                    "gr" => LineKind::Meaning(Language::Greek),
-                    _ => {
-                        throw!(MathemaErrorKind::UnrecognizedLineKind {
-                            source_line: parser.line_number(),
-                            kind: word0.to_string(),
-                        });
-                    }
-                };
+            } else if let Ok(language) = Language::from_str(word0) {
+                let kind = LineKind::Meaning(language);
                 card.lines.push(CardLine {
                     kind: kind,
                     text: remainder.to_string(),
+                });
+            } else {
+                throw!(MathemaErrorKind::UnrecognizedLineKind {
+                    source_line: parser.line_number(),
+                    kind: word0.to_string(),
                 });
             }
         }
@@ -184,6 +162,17 @@ impl fmt::Display for Language {
         match self {
             Language::English => write!(fmt, "en"),
             Language::Greek => write!(fmt, "gr"),
+        }
+    }
+}
+
+impl FromStr for Language {
+    type Err = MathemaError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "gr" => Ok(Language::Greek),
+            "en" => Ok(Language::English),
+            _ => Err(MathemaErrorKind::UnrecognizedLanguage { text: s.to_string() }.into()),
         }
     }
 }

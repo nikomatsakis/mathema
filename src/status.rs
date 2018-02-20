@@ -10,8 +10,8 @@ crate struct Status {
     valid_card_files: usize,
 }
 
-crate fn status(directory: &Path) -> Fallible<()> {
-    let repo = &mut MathemaRepository::open(&directory)?;
+crate fn status(options: &MathemaOptions) -> Fallible<()> {
+    let repo = &mut MathemaRepository::open(options)?;
     let status = repo.load_cards()?;
 
     if status.warn_if_needed(false) {
