@@ -23,6 +23,7 @@ crate use extern::{
     git2,
     itertools::Itertools,
     rand::{self, Rng},
+    ncurses,
     serde_derive::{Serialize, Deserialize},
     std::collections::{BTreeSet, BTreeMap, HashMap},
     std::env,
