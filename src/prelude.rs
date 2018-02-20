@@ -17,6 +17,8 @@ crate use crate::{
 crate use extern::{
     atomicwrites::{self, AtomicFile, OverwriteBehavior},
     chrono::{DateTime, Duration, Utc, prelude::*},
+    cursive::Cursive,
+    cursive::views::{Dialog, TextView},
     failure::{self, bail, Error, Fail, ResultExt},
     git2,
     itertools::Itertools,
@@ -26,7 +28,7 @@ crate use extern::{
     std::env,
     std::fmt,
     std::mem,
-    std::io,
+    std::io::{self, prelude::*},
     std::fs::{self, File},
     std::path::{self, Path, PathBuf},
     std::str::FromStr,

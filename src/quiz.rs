@@ -33,5 +33,13 @@ crate fn quiz(options: &MathemaOptions, language_str: &str) -> Fallible<()> {
     let rng = &mut rand::thread_rng();
     selection::expired_cards(rng, repo, suitable_questions);
 
+    let mut siv = Cursive::new();
+    siv.add_layer(
+        Dialog::around(TextView::new("Hello Dialog!"))
+            .title("Cursive")
+            .button("Quit", |s| s.quit()),
+    );
+    siv.run();
+
     Ok(())
 }

@@ -67,4 +67,15 @@ impl TestEnv {
         file.write_all(contents.as_bytes())?;
         Ok(())
     }
+
+    crate fn read_file(
+        &self,
+        name: &str,
+    ) -> io::Result<String> {
+        let path = self.temp_dir.path().join(name);
+        let mut buf = String::new();
+        let mut file = File::open(path)?;
+        file.read_to_string(&mut buf)?;
+        Ok(buf)
+    }
 }

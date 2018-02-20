@@ -29,7 +29,15 @@ impl FromStr for Language {
 }
 
 impl Language {
-    fn push_char(self, c: char, s: &mut String) {
+    crate fn transliterate(self, input: &str) -> String {
+        let mut result = String::new();
+        for c in input.chars() {
+            self.push_char(c, &mut result);
+        }
+        result
+    }
+
+    crate fn push_char(self, c: char, s: &mut String) {
         match self {
             Language::English => s.push(c),
             Language::Greek => push_gr_char(c, s),
@@ -113,4 +121,9 @@ fn push_giasou() {
     }
 
     assert_eq!(&string[..], "γίασου");
+}
+
+#[test]
+fn transliterate_giasou() {
+    assert_eq!(Language::Greek.transliterate("g;iasoy"), "γίασου");
 }

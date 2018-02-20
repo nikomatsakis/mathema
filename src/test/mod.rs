@@ -89,6 +89,32 @@ gr γιάσου
 }
 
 mathema_test! {
+    add_transliterates is |env| {
+        env.assert_mathema("")
+           .with_args(&["new", "foo"])
+           .unwrap();
+
+        env.write_file("foo/bar.cards", "\
+en hello
+gr gi;asoy
+")
+           .unwrap();
+
+        env.assert_mathema("foo")
+           .with_args(&["add", "bar.cards"])
+           .stdout()
+           .contains("`bar.cards` added to database.")
+           .and()
+           .stdout()
+           .contains("1 new card found.")
+           .unwrap();
+
+        let string = env.read_file("foo/bar.cards").unwrap();
+        assert!(string.contains("gr γιάσου"), "file does not contain γιάσου:\n{}", string);
+    }
+}
+
+mathema_test! {
     add_added_file is |env| {
         env.assert_mathema("")
            .with_args(&["new", "foo"])

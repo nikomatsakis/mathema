@@ -98,9 +98,10 @@ fn parse_card(source_file: &Path, parser: &mut LineParser) -> Fallible<Card> {
                 }
             } else if let Ok(language) = Language::from_str(word0) {
                 let kind = LineKind::Meaning(language);
+                let text = language.transliterate(remainder);
                 card.lines.push(CardLine {
                     kind: kind,
-                    text: remainder.to_string(),
+                    text: text,
                 });
             } else {
                 throw!(MathemaErrorKind::UnrecognizedLineKind {
