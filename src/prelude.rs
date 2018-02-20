@@ -2,10 +2,11 @@
 
 crate use crate::{
     MathemaOptions,
-    cards::{self, Card, CardLine, LineKind, Language},
+    cards::{self, Card, CardLine, LineKind},
     db::{Database, User, CardRecord, QuestionRecord, QuestionResult, QuestionKind},
     errors::{Fallible, MathemaError, MathemaErrorKind},
     git::MathemaRepository,
+    language::Language,
     selection,
     status::Status,
     line_parser::LineParser,
@@ -23,6 +24,7 @@ crate use extern::{
     serde_derive::{Serialize, Deserialize},
     std::collections::{BTreeSet, BTreeMap, HashMap},
     std::env,
+    std::fmt,
     std::mem,
     std::io,
     std::fs::{self, File},

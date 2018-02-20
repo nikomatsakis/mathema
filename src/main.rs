@@ -23,6 +23,7 @@ mod cards;
 mod db;
 mod errors;
 mod git;
+mod language;
 mod line_parser;
 mod new;
 mod status;
