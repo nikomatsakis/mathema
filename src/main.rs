@@ -2,19 +2,16 @@
 #![deny(unused_must_use)] // always a bug
 #![feature(crate_in_paths, conservative_impl_trait, crate_visibility_modifier, decl_macro,
            dyn_trait, /*FIXME(rust-lang/rust#47075) extern_absolute_paths,*/ extern_in_paths,
-           in_band_lifetimes, match_default_bindings, nll,
+           inclusive_range_syntax, in_band_lifetimes, match_default_bindings, nll,
            termination_trait, underscore_lifetimes, universal_impl_trait)]
 
 // FIXME can't use this because of format!
 //#![deny(elided_lifetime_in_path)]
 
 use crate::prelude::*;
-use extern::{
-    structopt_derive::StructOpt,
-    structopt::{self, StructOpt},
-};
+use extern::{structopt::{self, StructOpt}, structopt_derive::StructOpt};
 
-macro throw($t:expr) {
+macro throw($t: expr) {
     return Err($t.into());
 }
 
@@ -52,9 +49,14 @@ struct MathemaOptions {
 
 #[derive(StructOpt, Clone, Debug)]
 enum MathemaCommand {
-    #[structopt(name = "quiz", about = "test yourself")] Quiz {
+    #[structopt(name = "quiz", about = "test yourself")]
+    Quiz {
         #[structopt(help = "what language do you want to learn")]
-        language: String
+        language: String,
+
+        #[structopt(short = "d", long = "duration", help = "maximum duration in minutes",
+                    default_value = "10")]
+        duration: i64,
     },
 
     #[structopt(name = "dump", about = "dump info about cards")] Dump,
@@ -65,8 +67,7 @@ enum MathemaCommand {
         directory: String,
     },
 
-    #[structopt(name = "status", about = "check on the status of your cards")]
-    Status,
+    #[structopt(name = "status", about = "check on the status of your cards")] Status,
 
     #[structopt(name = "add", about = "add new cards from file")]
     Add {
@@ -89,8 +90,8 @@ fn main1() -> Result<(), Error> {
     let args = &MathemaOptions::from_args();
 
     match &args.command {
-        MathemaCommand::Quiz { language } => {
-            quiz::quiz(args, language)?;
+        MathemaCommand::Quiz { language, duration } => {
+            quiz::quiz(args, language, *duration)?;
         }
 
         MathemaCommand::New { directory } => {

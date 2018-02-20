@@ -6,11 +6,18 @@ pub(crate) enum Language {
     Greek,
 }
 
-impl fmt::Display for Language {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+impl Language {
+    crate fn abbreviation(self) -> &'static str {
         match self {
-            Language::English => write!(fmt, "en"),
-            Language::Greek => write!(fmt, "gr"),
+            Language::English => "en",
+            Language::Greek => "gr",
+        }
+    }
+
+    crate fn full_name(self) -> &'static str {
+        match self {
+            Language::English => "English",
+            Language::Greek => "Ελληνικά",
         }
     }
 }

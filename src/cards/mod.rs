@@ -31,7 +31,7 @@ impl Card {
         self.lines_with_kind(kind)
     }
 
-    fn lines_with_kind(&self, kind: LineKind) -> impl Iterator<Item = &str> + '_ {
+    crate fn lines_with_kind(&self, kind: LineKind) -> impl Iterator<Item = &str> + '_ {
         self.lines
             .iter()
             .filter(move |line| line.kind == kind)
@@ -147,7 +147,7 @@ impl fmt::Display for LineKind {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         match self {
             LineKind::Comment => write!(fmt, "#"),
-            LineKind::Meaning(lang) => write!(fmt, "{}", lang),
+            LineKind::Meaning(lang) => write!(fmt, "{}", lang.abbreviation()),
         }
     }
 }

@@ -89,6 +89,10 @@ impl MathemaRepository {
         self.cards.keys().cloned()
     }
 
+    crate fn card(&self, uuid: Uuid) -> &Card {
+        &self.cards[&uuid]
+    }
+
     /// Makes a "database-relative" path into an absolute path.
     fn absolute_path(&self, relative_path: impl AsRef<Path>) -> PathBuf {
         self.directory_path.join(relative_path)

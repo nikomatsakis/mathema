@@ -35,7 +35,7 @@ pub(crate) struct QuestionRecord {
     pub(crate) result: QuestionResult,
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) enum QuestionKind {
     Translate { from: Language, to: Language },
 }
@@ -76,6 +76,10 @@ impl Database {
 
     crate fn card_record(&self, uuid: Uuid) -> Option<&CardRecord> {
         self.user.records.get(&uuid)
+    }
+
+    crate fn card_record_mut(&mut self, uuid: Uuid) -> &mut CardRecord {
+        self.user.records.entry(uuid).or_insert(CardRecord::default())
     }
 }
 
@@ -127,5 +131,50 @@ impl CardRecord {
         let questions = self.questions(kind);
         let len = questions.len();
         (1..len).map(move |i| (&questions[i - 1], &questions[i])).rev()
+    }
+}
+
+impl QuestionKind {
+    /// When asking a question of this kind, what kinds of lines in the card
+    /// provide the "prompt" we should give the user?
+    crate fn prompt_line_kind(self) -> LineKind {
+        match self {
+            QuestionKind::Translate { from, to: _ } => LineKind::Meaning(from),
+        }
+    }
+
+    /// When asking a question of this kind, what kinds of lines in
+    /// the card provide the "response" we should expect from the
+    /// user?
+    crate fn response_line_kind(self) -> LineKind {
+        match self {
+            QuestionKind::Translate { from: _, to } => LineKind::Meaning(to),
+        }
+    }
+
+    /// When asking a question of this kind, what language should we
+    /// expect the user's response to be in?
+    crate fn response_language(self) -> Language {
+        match self {
+            QuestionKind::Translate { from: _, to } => to,
+        }
+    }
+
+    crate fn prompt_text(self) -> impl fmt::Display {
+        PromptText(self)
+    }
+}
+
+struct PromptText(QuestionKind);
+
+impl fmt::Display for PromptText {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        match self.0 {
+            QuestionKind::Translate { from, to } => {
+                write!(fmt, "translate from {} to {}", from.full_name(), to.full_name())?;
+            }
+        }
+
+        Ok(())
     }
 }

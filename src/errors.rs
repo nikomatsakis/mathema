@@ -33,7 +33,7 @@ pub(crate) enum MathemaErrorKind {
 
     #[fail(display = "don't know how to quiz you in `{}`", language)]
     DontKnowHowToQuiz {
-        language: Language,
+        language: &'static str,
     },
 
     #[fail(display = "the cards file `{}` does not appear to be in the repository directory",
