@@ -22,12 +22,12 @@ impl Presentation for Basic {
     }
 
     fn read_response(&mut self, prompt: Prompt<'_>, index: usize) -> Fallible<Option<String>> {
-        print!("Response {}/{}: ", index, prompt.num_responses);
+        println!("Response {}/{}: ", index, prompt.num_responses);
         let mut buffer = String::new();
         self.stdin.read_line(&mut buffer)?;
         let response_language = prompt.question_kind.response_language();
-        let response = response_language.transliterate(&buffer);
-        if response != buffer {
+        let response = response_language.transliterate(buffer.trim());
+        if response != buffer.trim() {
             println!("  (transliterated to `{}`)", response);
         }
         if response.is_empty() {
@@ -48,28 +48,42 @@ impl Presentation for Basic {
         }
 
         loop {
-            print!("Did you know it (yes/almost/no)? ");
+            println!("Did you know it (yes/almost/no)? ");
             let mut buffer = String::new();
             self.stdin.read_line(&mut buffer)?;
-            let buffer = buffer.to_lowercase();
+            let buffer = buffer.trim().to_lowercase();
             match &buffer[..] {
                 "yes" | "y" => return Ok(QuestionResult::Yes),
                 "almost" | "a" => return Ok(QuestionResult::Almost),
                 "no" | "n" => return Ok(QuestionResult::No),
-                _ => { }
+                _ => {}
             }
         }
     }
 
     fn cleanup(&mut self) {
+        println!();
+        println!();
+        println!();
     }
 
-    fn quiz_expired(&mut self, quiz_duration: Duration) -> Fallible<Option<i64>> {
+    fn quiz_expired(
+        &mut self,
+        quiz_duration: Duration,
+        remaining_cards: usize,
+    ) -> Fallible<Option<i64>> {
         println!("--------------------------------------------------");
-        println!("{} minutes have expired since you started the quiz.", quiz_duration.num_minutes());
+        println!(
+            "{} minutes have expired since you started the quiz.",
+            quiz_duration.num_minutes()
+        );
+        println!(
+            "There are still {} cards left to go.",
+            remaining_cards,
+        );
         loop {
             println!("If you want to stop, press enter.");
-            print!("Otherwise, type in how many more minutes: ");
+            println!("Otherwise, type in how many more minutes: ");
             let mut buffer = String::new();
             self.stdin.read_line(&mut buffer)?;
             if buffer.is_empty() {
@@ -79,7 +93,7 @@ impl Presentation for Basic {
                 Ok(v) if v >= 0 => {
                     return Ok(Some(v));
                 }
-                _ => { }
+                _ => {}
             }
         }
     }

@@ -40,7 +40,7 @@ pub(crate) enum QuestionKind {
     Translate { from: Language, to: Language },
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub(crate) enum QuestionResult {
     /// User knew it.
     Yes,

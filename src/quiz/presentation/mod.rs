@@ -12,7 +12,11 @@ crate trait Presentation {
 
     /// Prompt user that `quiz_duration` time has been spent. Ask if
     /// they want to spend more time.
-    fn quiz_expired(&mut self, quiz_duration: Duration) -> Fallible<Option<i64>>;
+    fn quiz_expired(
+        &mut self,
+        quiz_duration: Duration,
+        remaining_cards: usize,
+    ) -> Fallible<Option<i64>>;
 }
 
 #[derive(Copy, Clone, Debug)]

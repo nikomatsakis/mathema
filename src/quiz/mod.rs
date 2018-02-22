@@ -44,12 +44,16 @@ crate fn quiz(options: &MathemaOptions, language_str: &str, duration_min: i64) -
 
     let mut presentation = presentation::basic();
 
-    let parentheticals = Regex::new(r"([^)]*)|\[[^]\]").unwrap();
+    let parentheticals = Regex::new(r"\(.*\)").unwrap();
 
-    for (uuid, question_kind) in cards {
+    let cards_len = cards.len();
+    for ((uuid, question_kind), cards_remaining) in cards.into_iter().zip((1..=cards_len).rev()) {
         let quiz_duration = Utc::now().signed_duration_since(start_time);
         if quiz_duration > max_duration {
-            match presentation.quiz_expired(Utc::now().signed_duration_since(original_start_time))? {
+            match presentation.quiz_expired(
+                Utc::now().signed_duration_since(original_start_time),
+                cards_remaining,
+            )? {
                 None => break,
                 Some(minutes) => {
                     start_time = Utc::now();
@@ -59,8 +63,9 @@ crate fn quiz(options: &MathemaOptions, language_str: &str, duration_min: i64) -
         }
 
         let card = repo.card(uuid);
-        let mut expected_responses: Vec<_> = card.lines_with_kind(question_kind.response_line_kind())
-            .collect();
+        let mut expected_responses: Vec<_> = card.lines_with_kind(
+            question_kind.response_line_kind(),
+        ).collect();
 
         let prompt = Prompt {
             start_time,
@@ -73,16 +78,16 @@ crate fn quiz(options: &MathemaOptions, language_str: &str, duration_min: i64) -
 
         let mut counter = 1;
         while let Some(user_response) = presentation.read_response(prompt, counter)? {
-            counter += 1;
-
             expected_responses.retain(|r| {
                 let r = parentheticals.replace_all(r, "");
-                r != user_response
+                r.trim() != user_response
             });
 
-            if expected_responses.is_empty() {
+            if counter >= expected_responses.len() {
                 break;
             }
+
+            counter += 1;
         }
 
         let result = if expected_responses.is_empty() {
@@ -91,10 +96,13 @@ crate fn quiz(options: &MathemaOptions, language_str: &str, duration_min: i64) -
             presentation.read_result(prompt, &expected_responses)?
         };
         let record = repo.database_mut().card_record_mut(uuid);
-        record.push_question_record(question_kind, QuestionRecord {
-            date: Utc::now(),
-            result: result,
-        });
+        record.push_question_record(
+            question_kind,
+            QuestionRecord {
+                date: Utc::now(),
+                result: result,
+            },
+        );
 
         presentation.cleanup();
     }
