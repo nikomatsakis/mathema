@@ -15,7 +15,7 @@ crate use crate::{
     uuid_ext::UuidExt,
 };
 
-crate use extern::{
+crate use crate::{
     atomicwrites::{self, AtomicFile, OverwriteBehavior},
     chrono::{DateTime, Duration, Utc, prelude::*},
     cursive::Cursive,

@@ -17,7 +17,7 @@ ncurses = "5.0"
 string-interner = "0.6.3"
 serde = "1.0.27"
 serde_derive = "1.0"
-serde_json = "1.0"
+ron = "0.2"
 walkdir = "2.0"
 
 [dependencies.uuid]

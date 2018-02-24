@@ -31,7 +31,7 @@ crate fn add(options: &MathemaOptions, file: &str) -> Fallible<()> {
     // Otherwise, we can assign UUIDs to each card.
     let mut uuids_assigned = 0;
     for c in &mut cards {
-        if c.uuid.is_none() {
+        if c.uuid.is_none() && !c.is_comment_card() {
             uuids_assigned += 1;
             c.uuid = Some(Uuid::fresh());
         }

@@ -60,13 +60,14 @@ impl Database {
         }
     }
 
-    crate fn write_to(&self, writer: impl io::Write) -> Fallible<()> {
-        extern::serde_json::ser::to_writer(writer, self)?;
+    crate fn write_to(&self, mut writer: impl io::Write) -> Fallible<()> {
+        let string = ::ron::ser::to_string_pretty(self, Default::default())?;
+        writer.write_all(string.as_bytes())?;
         Ok(())
     }
 
     crate fn load_from(reader: impl io::Read) -> Fallible<Self> {
-        let db = extern::serde_json::de::from_reader(reader)?;
+        let db = ::ron::de::from_reader(reader)?;
         Ok(db)
     }
 

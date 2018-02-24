@@ -1,4 +1,4 @@
-use extern::ncurses;
+use ncurses;
 
 crate struct Ncurses { }
 

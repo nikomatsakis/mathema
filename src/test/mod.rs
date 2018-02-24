@@ -83,7 +83,7 @@ gr γιάσου
 
         env.assert_git("foo")
            .with_args(&["show", "--stat", "HEAD"])
-           .stdout().contains(" bar.cards        | 3 +++")
+           .stdout().contains(" bar.cards       | 3 +++")
            .unwrap();
     }
 }
@@ -156,5 +156,32 @@ gr νερό
            .with_args(&["show", "--stat", "HEAD"])
            .stdout().contains(" bar.cards | 4 ++++")
            .unwrap();
+    }
+}
+
+mathema_test! {
+    comment_cards_do_not_get_uuids is |env| {
+        env.assert_mathema("")
+           .with_args(&["new", "foo"])
+           .unwrap();
+
+        env.write_file("foo/bar.cards", "\
+# foo
+
+# bar
+en hello
+gr γιάσου
+")
+           .unwrap();
+
+        env.assert_mathema("foo")
+           .with_args(&["add", "bar.cards"])
+           .stdout()
+           .contains("`bar.cards` added to database.")
+           .unwrap();
+
+        let string = env.read_file("foo/bar.cards").unwrap();
+        let num_uuids = string.lines().filter(|l| l.starts_with("uuid")).count();
+        assert_eq!(num_uuids, 1, "too many uuids in `{}`", string);
     }
 }

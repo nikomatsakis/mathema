@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use extern::std::fmt;
+use std::fmt;
 
 #[derive(Debug)]
 crate struct CardSet {
@@ -23,12 +23,17 @@ crate struct CardLine {
 crate enum LineKind {
     Comment,
     Meaning(Language),
+    PartOfSpeech,
 }
 
 impl Card {
     crate fn meanings(&self, language: Language) -> impl Iterator<Item = &str> + '_ {
         let kind = LineKind::Meaning(language);
         self.lines_with_kind(kind)
+    }
+
+    crate fn is_comment_card(&self) -> bool {
+        self.lines.iter().all(|l| l.kind == LineKind::Comment)
     }
 
     crate fn lines_with_kind(&self, kind: LineKind) -> impl Iterator<Item = &str> + '_ {
@@ -96,6 +101,11 @@ fn parse_card(source_file: &Path, parser: &mut LineParser) -> Fallible<Card> {
                         line: card.start_line,
                     }),
                 }
+            } else if word0 == "pos" {
+                card.lines.push(CardLine {
+                    kind: LineKind::PartOfSpeech,
+                    text: remainder.to_string(),
+                });
             } else if let Ok(language) = Language::from_str(word0) {
                 let kind = LineKind::Meaning(language);
                 let text = language.transliterate(remainder);
@@ -148,6 +158,7 @@ impl fmt::Display for LineKind {
         match self {
             LineKind::Comment => write!(fmt, "#"),
             LineKind::Meaning(lang) => write!(fmt, "{}", lang.abbreviation()),
+            LineKind::PartOfSpeech => write!(fmt, "pos"),
         }
     }
 }

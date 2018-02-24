@@ -1,9 +1,7 @@
 use crate::prelude::*;
 
-use extern::{
-    failure::Context,
-    std::fmt,
-};
+use ::failure::Context;
+use ::std::fmt;
 
 pub(crate) type Fallible<T> = Result<T, MathemaError>;
 
@@ -131,10 +129,11 @@ macro_rules! link_unexpected {
 }
 
 link_unexpected! {
-    extern::std::io::Error,
-    extern::walkdir::Error,
-    extern::git2::Error,
-    extern::serde_json::Error,
+    ::std::io::Error,
+    ::walkdir::Error,
+    ::git2::Error,
+    ::ron::de::Error,
+    ::ron::ser::Error,
 }
 
 impl<E> From<atomicwrites::Error<E>> for MathemaError

@@ -19,7 +19,7 @@ crate struct Status {
     crate valid_card_files: usize,
 }
 
-const RELATIVE_DB_PATH: &str = ".mathema-v1.json";
+const RELATIVE_DB_PATH: &str = ".mathema-v1.ron";
 
 impl MathemaRepository {
     crate fn create_on_disk(directory: impl AsRef<Path>) -> Fallible<MathemaRepository> {
@@ -154,11 +154,10 @@ impl MathemaRepository {
     crate fn write_database(&mut self) -> Fallible<()> {
         if !self.dry_run {
             let db_path = self.db_path();
-            self.write_file(&self.db_path(), |f| self.database.write_to(f)).with_context(|_| {
-                MathemaErrorKind::AccessingFile {
+            self.write_file(&self.db_path(), |f| self.database.write_to(f))
+                .with_context(|_| MathemaErrorKind::AccessingFile {
                     file: db_path.display().to_string(),
-                }
-            })?;
+                })?;
 
             self.git_commit()?;
         }
@@ -291,8 +290,7 @@ impl Status {
     }
 
     crate fn contains_fatal(&self) -> bool {
-        !self.card_files_with_missing_uuids.is_empty() ||
-            !self.duplicate_uuids.is_empty()
+        !self.card_files_with_missing_uuids.is_empty() || !self.duplicate_uuids.is_empty()
     }
 
     /// Issues warnings. Returns true if fatal warnings were emitted,
@@ -346,7 +344,8 @@ impl Status {
                     );
                 } else {
                     let (tail, prefix) = lines.split_last().unwrap();
-                    let lines_str: String = prefix.iter().map(|line| format!("{}, ", line)).collect();
+                    let lines_str: String =
+                        prefix.iter().map(|line| format!("{}, ", line)).collect();
                     println!(
                         "  {} (on lines {}, and {})",
                         filename.display(),

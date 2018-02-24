@@ -10,13 +10,14 @@
 //! }
 //! ```
 
-use extern::{
-    assert_cli::Assert,
-    std::io::{self, prelude::*},
-    std::fs::{File, OpenOptions},
-    std::path::Path,
-    tempdir::TempDir,
-};
+extern crate assert_cli;
+extern crate tempdir;
+
+use self::assert_cli::Assert;
+use std::io::{self, prelude::*};
+use std::fs::{File, OpenOptions};
+use std::path::Path;
+use self::tempdir::TempDir;
 
 macro_rules! mathema_test {
     ($test_name:ident is $closure:expr) => {
