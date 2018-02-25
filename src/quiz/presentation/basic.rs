@@ -8,21 +8,8 @@ impl Basic {
     crate fn new() -> Self {
         Basic { stdin: io::stdin() }
     }
-}
 
-impl Presentation for Basic {
-    fn start_prompt(&mut self, prompt: Prompt<'_>) -> Fallible<()> {
-        println!("--------------------------------------------------");
-        println!("Please {}:", prompt.question_kind.prompt_text());
-        let prompt_line_kind = prompt.question_kind.prompt_line_kind();
-        for line in prompt.card.lines_with_kind(prompt_line_kind) {
-            println!("- {}", line);
-        }
-        Ok(())
-    }
-
-    fn read_response(&mut self, prompt: Prompt<'_>, index: usize) -> Fallible<Option<String>> {
-        println!("Response {}/{}: ", index, prompt.num_responses);
+    fn read_answer(&mut self, prompt: Prompt<'_>) -> Fallible<Option<String>> {
         let mut buffer = String::new();
         self.stdin.read_line(&mut buffer)?;
         let response_language = prompt.question_kind.response_language();
@@ -35,6 +22,22 @@ impl Presentation for Basic {
         } else {
             Ok(Some(response))
         }
+    }
+}
+
+impl Presentation for Basic {
+    fn start_prompt(&mut self, prompt: Prompt<'_>) -> Fallible<()> {
+        println!("Please {}:", prompt.question_kind.prompt_text());
+        let prompt_line_kind = prompt.question_kind.prompt_line_kind();
+        for line in prompt.card.lines_with_kind(prompt_line_kind) {
+            println!("- {}", line);
+        }
+        Ok(())
+    }
+
+    fn read_response(&mut self, prompt: Prompt<'_>, index: usize) -> Fallible<Option<String>> {
+        println!("Response {}/{}: ", index, prompt.num_responses);
+        self.read_answer(prompt)
     }
 
     fn read_result(
@@ -61,10 +64,29 @@ impl Presentation for Basic {
         }
     }
 
+    fn repeat_back(
+        &mut self,
+        prompt: Prompt<'_>,
+        expected_answer: &str,
+    ) -> Fallible<Option<String>> {
+        println!("Repeat back `{}`:", expected_answer);
+        self.read_answer(prompt)
+    }
+
+    fn try_again(
+        &mut self,
+        _prompt: Prompt<'_>,
+        _expected_answer: &str,
+    ) -> Fallible<()> {
+        println!("Not quite, try again!");
+        Ok(())
+    }
+
     fn cleanup(&mut self) {
         println!();
         println!();
         println!();
+        println!("--------------------------------------------------");
     }
 
     fn quiz_expired(
@@ -72,21 +94,17 @@ impl Presentation for Basic {
         quiz_duration: Duration,
         remaining_cards: usize,
     ) -> Fallible<Option<i64>> {
-        println!("--------------------------------------------------");
         println!(
             "{} minutes have expired since you started the quiz.",
             quiz_duration.num_minutes()
         );
-        println!(
-            "There are still {} cards left to go.",
-            remaining_cards,
-        );
+        println!("There are still {} cards left to go.", remaining_cards,);
         loop {
             println!("If you want to stop, press enter.");
             println!("Otherwise, type in how many more minutes: ");
             let mut buffer = String::new();
             self.stdin.read_line(&mut buffer)?;
-            if buffer.is_empty() {
+            if buffer.trim().is_empty() {
                 return Ok(None);
             }
             match i64::from_str(&buffer) {

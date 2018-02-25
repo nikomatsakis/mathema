@@ -25,6 +25,13 @@ extern crate structopt_derive;
 extern crate uuid;
 extern crate walkdir;
 
+// FIXME: File an issue...had some problems due to crazy internal
+// macros; really needs hygiene I guess?
+//
+// FIXME: RLS bug about `extern crate lazy_static` here.
+#[macro_use]
+extern crate lazy_static;
+
 use crate::prelude::*;
 use ::{structopt::StructOpt, structopt_derive::StructOpt};
 
@@ -71,6 +78,10 @@ enum MathemaCommand {
         #[structopt(help = "what language do you want to learn")]
         language: String,
 
+        #[structopt(long = "mode", help = "presentation mode (basic or ncurses)",
+                    default_value = "basic")]
+        mode: PresentationMode,
+
         #[structopt(short = "d", long = "duration", help = "maximum duration in minutes",
                     default_value = "10")]
         duration: i64,
@@ -107,8 +118,8 @@ fn main1() -> Result<(), Error> {
     let args = &MathemaOptions::from_args();
 
     match &args.command {
-        MathemaCommand::Quiz { language, duration } => {
-            quiz::quiz(args, language, *duration)?;
+        MathemaCommand::Quiz { language, mode, duration } => {
+            quiz::quiz(args, language, *mode, *duration)?;
         }
 
         MathemaCommand::New { directory } => {

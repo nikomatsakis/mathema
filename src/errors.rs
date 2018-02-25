@@ -23,6 +23,11 @@ pub(crate) enum MathemaErrorKind {
         text: String,
     },
 
+    #[fail(display = "`{}` is not a recognized presentation mode (try basic or ncurses)", text)]
+    UnrecognizedPresentationMode {
+        text: String,
+    },
+
     #[fail(display = "the option `{}` is not compatible with the command `{}`", option, command)]
     IncompatibleOption {
         option: &'static str,

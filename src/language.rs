@@ -88,6 +88,7 @@ fn push_gr_char(c: char, s: &mut String) {
         'x' => push('χ', 'χ'),
         'c' => push('ψ', 'ψ'),
         'v' => push('ω', 'ώ'),
+        'w' => push('ς', 'ς'),
         'q' => push(';', ';'),
 
         'A' => push('Α', 'Ά'),
@@ -133,4 +134,5 @@ fn push_giasou() {
 #[test]
 fn transliterate_giasou() {
     assert_eq!(Language::Greek.transliterate("g;iasoy"), "γίασου");
+    assert_eq!(Language::Greek.transliterate("ftervt;ow"), "φτερωτός");
 }
