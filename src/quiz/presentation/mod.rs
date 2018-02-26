@@ -44,7 +44,11 @@ crate trait Presentation {
     ) -> Fallible<QuestionResult>;
 
     /// Invoked repeatedly if user says they got it wrong.
-    fn repeat_back(&mut self, prompt: Prompt<'_>, expected_answer: &str) -> Fallible<Option<String>>;
+    fn repeat_back(
+        &mut self,
+        prompt: Prompt<'_>,
+        expected_answer: &str,
+    ) -> Fallible<Option<String>>;
 
     /// Invoked when user got it wrong *again*.
     fn try_again(&mut self, prompt: Prompt<'_>, expected_answer: &str) -> Fallible<()>;
@@ -77,6 +81,7 @@ crate enum PresentationMode {
 
 crate mod basic;
 crate mod ncurses;
+crate mod text;
 
 impl FromStr for PresentationMode {
     type Err = MathemaError;
@@ -95,8 +100,12 @@ impl FromStr for PresentationMode {
 impl Presentation {
     crate fn with_mode(mode: PresentationMode) -> Box<Presentation> {
         match mode {
-            PresentationMode::Basic => Box::new(basic::Basic::new()) as Box<Presentation>,
-            PresentationMode::Ncurses => Box::new(ncurses::Ncurses::new()) as Box<Presentation>,
+            PresentationMode::Basic => {
+                Box::new(TextPresentation::new(basic::Basic::new())) as Box<Presentation>
+            }
+            PresentationMode::Ncurses => {
+                Box::new(TextPresentation::new(ncurses::Ncurses::new())) as Box<Presentation>
+            }
         }
     }
 }

@@ -23,6 +23,9 @@ pub(crate) enum MathemaErrorKind {
         text: String,
     },
 
+    #[fail(display = "C-c pressed, aborting! Hope that's what you wanted!")]
+    ControlC,
+
     #[fail(display = "`{}` is not a recognized presentation mode (try basic or ncurses)", text)]
     UnrecognizedPresentationMode {
         text: String,

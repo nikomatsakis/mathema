@@ -2,61 +2,88 @@ use crate::prelude::*;
 use ncurses;
 
 crate struct Ncurses {
-    basic: Basic
+    window: ncurses::WINDOW,
+    row: i32,
 }
 
 impl Ncurses {
     crate fn new() -> Self {
-        ncurses::initscr();
+        ncurses::setlocale(ncurses::LcCategory::all, "");
+        let window = ncurses::initscr();
         ncurses::raw();
         ncurses::noecho();
-        Ncurses { basic: Basic::new() }
+        ncurses::clear();
+        Ncurses { window, row: 0 }
+    }
+
+    fn getch(&mut self) -> Fallible<char> {
+        let ch = check_ret!(ncurses::getch());
+        if ch == 3 {
+            throw!(MathemaErrorKind::ControlC);
+        }
+        Ok(char::from_u32(ch as u32).unwrap())
+    }
+
+    fn read_line(
+        &mut self,
+        mut push_char: impl FnMut(char, &mut String),
+    ) -> Fallible<Option<String>> {
+        let mut buffer = String::new();
+        loop {
+            check_ret!(ncurses::mvprintw(self.row, 0, &buffer));
+            let ch = self.getch()?;
+            if ch == '\n' {
+                break;
+            }
+            push_char(ch, &mut buffer);
+        }
+        if buffer.is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(buffer))
+        }
     }
 }
 
-impl Presentation for Ncurses {
-    fn start_prompt(&mut self, prompt: Prompt<'_>) -> Fallible<()> {
-        self.basic.start_prompt(prompt)
+macro check_ret($e: expr) {
+    {
+        let result = $e;
+        if result < 0 {
+            panic!("obscure ncurses error: {}", result);
+        }
+        result
+    }
+}
+
+impl TextDelegate for Ncurses {
+    fn println(&mut self, text: &str) -> Fallible<()> {
+        check_ret!(ncurses::mvprintw(self.row, 0, text));
+        self.row += 1;
+        Ok(())
     }
 
-    fn read_response(&mut self, prompt: Prompt<'_>, index: usize) -> Fallible<Option<String>> {
-        self.basic.read_response(prompt, index)
+    fn read_answer(&mut self, prompt: Prompt<'_>) -> Fallible<Option<String>> {
+        let response_language = prompt.question_kind.response_language();
+        self.read_line(|c, b| response_language.push_char(c, b))
     }
 
-    fn read_result(
-        &mut self,
-        prompt: Prompt<'_>,
-        missing_answers: &[&str],
-    ) -> Fallible<QuestionResult> {
-        self.basic.read_result(prompt, missing_answers)
+    fn read_result(&mut self, _prompt: Prompt<'_>) -> Fallible<Option<QuestionResult>> {
+        let ch = check_ret!(ncurses::getch());
+        match char::from_u32(ch as u32).unwrap() {
+            'y' => Ok(Some(QuestionResult::Yes)),
+            'a' => Ok(Some(QuestionResult::Almost)),
+            'n' => Ok(Some(QuestionResult::No)),
+            _ => Ok(None),
+        }
     }
 
-    fn repeat_back(
-        &mut self,
-        prompt: Prompt<'_>,
-        expected_answer: &str,
-    ) -> Fallible<Option<String>> {
-        self.basic.repeat_back(prompt, expected_answer)
-    }
-
-    fn try_again(
-        &mut self,
-        prompt: Prompt<'_>,
-        expected_answer: &str,
-    ) -> Fallible<()> {
-        self.basic.try_again(prompt, expected_answer)
+    fn read_minutes(&mut self) -> Fallible<Option<String>> {
+        self.read_line(|c, b| b.push(c))
     }
 
     fn cleanup(&mut self) {
         ncurses::clear();
-    }
-
-    fn quiz_expired(
-        &mut self,
-        quiz_duration: Duration,
-        remaining_cards: usize,
-    ) -> Fallible<Option<i64>> {
-        self.basic.quiz_expired(quiz_duration, remaining_cards)
+        self.row = 0;
     }
 }
 

@@ -9,6 +9,14 @@ impl Basic {
         Basic { stdin: io::stdin() }
     }
 
+}
+
+impl TextDelegate for Basic {
+    fn println(&mut self, text: &str) -> Fallible<()> {
+        println!("{}", text);
+        Ok(())
+    }
+
     fn read_answer(&mut self, prompt: Prompt<'_>) -> Fallible<Option<String>> {
         let mut buffer = String::new();
         self.stdin.read_line(&mut buffer)?;
@@ -23,63 +31,27 @@ impl Basic {
             Ok(Some(response))
         }
     }
-}
 
-impl Presentation for Basic {
-    fn start_prompt(&mut self, prompt: Prompt<'_>) -> Fallible<()> {
-        println!("Please {}:", prompt.question_kind.prompt_text());
-        let prompt_line_kind = prompt.question_kind.prompt_line_kind();
-        for line in prompt.card.lines_with_kind(prompt_line_kind) {
-            println!("- {}", line);
-        }
-        Ok(())
-    }
-
-    fn read_response(&mut self, prompt: Prompt<'_>, index: usize) -> Fallible<Option<String>> {
-        println!("Response {}/{}: ", index, prompt.num_responses);
-        self.read_answer(prompt)
-    }
-
-    fn read_result(
-        &mut self,
-        _prompt: Prompt<'_>,
-        missing_answers: &[&str],
-    ) -> Fallible<QuestionResult> {
-        println!("Missing answers:");
-        for answer in missing_answers {
-            println!("- {}", answer);
-        }
-
-        loop {
-            println!("Did you know it (yes/almost/no)? ");
-            let mut buffer = String::new();
-            self.stdin.read_line(&mut buffer)?;
-            let buffer = buffer.trim().to_lowercase();
-            match &buffer[..] {
-                "yes" | "y" => return Ok(QuestionResult::Yes),
-                "almost" | "a" => return Ok(QuestionResult::Almost),
-                "no" | "n" => return Ok(QuestionResult::No),
-                _ => {}
-            }
+    fn read_result(&mut self, _prompt: Prompt<'_>) -> Fallible<Option<QuestionResult>> {
+        let mut buffer = String::new();
+        self.stdin.read_line(&mut buffer)?;
+        let buffer = buffer.trim().to_lowercase();
+        match &buffer[..] {
+            "yes" | "y" => Ok(Some(QuestionResult::Yes)),
+            "almost" | "a" => Ok(Some(QuestionResult::Almost)),
+            "no" | "n" => Ok(Some(QuestionResult::No)),
+            _ => Ok(None),
         }
     }
 
-    fn repeat_back(
-        &mut self,
-        prompt: Prompt<'_>,
-        expected_answer: &str,
-    ) -> Fallible<Option<String>> {
-        println!("Repeat back `{}`:", expected_answer);
-        self.read_answer(prompt)
-    }
-
-    fn try_again(
-        &mut self,
-        _prompt: Prompt<'_>,
-        _expected_answer: &str,
-    ) -> Fallible<()> {
-        println!("Not quite, try again!");
-        Ok(())
+    fn read_minutes(&mut self) -> Fallible<Option<String>> {
+        let mut buffer = String::new();
+        self.stdin.read_line(&mut buffer)?;
+        if buffer.trim().is_empty() {
+            Ok(None)
+        } else {
+            Ok(Some(buffer))
+        }
     }
 
     fn cleanup(&mut self) {
@@ -87,32 +59,5 @@ impl Presentation for Basic {
         println!();
         println!();
         println!("--------------------------------------------------");
-    }
-
-    fn quiz_expired(
-        &mut self,
-        quiz_duration: Duration,
-        remaining_cards: usize,
-    ) -> Fallible<Option<i64>> {
-        println!(
-            "{} minutes have expired since you started the quiz.",
-            quiz_duration.num_minutes()
-        );
-        println!("There are still {} cards left to go.", remaining_cards,);
-        loop {
-            println!("If you want to stop, press enter.");
-            println!("Otherwise, type in how many more minutes: ");
-            let mut buffer = String::new();
-            self.stdin.read_line(&mut buffer)?;
-            if buffer.trim().is_empty() {
-                return Ok(None);
-            }
-            match i64::from_str(&buffer) {
-                Ok(v) if v >= 0 => {
-                    return Ok(Some(v));
-                }
-                _ => {}
-            }
-        }
     }
 }
