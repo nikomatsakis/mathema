@@ -25,10 +25,18 @@ lazy_static! {
 crate fn quiz(
     options: &MathemaOptions,
     language_str: &str,
-    mode: PresentationMode,
+    mode: Option<PresentationMode>,
     duration_min: i64,
 ) -> Fallible<()> {
     let rng = &mut rand::thread_rng();
+
+    let mode = mode.unwrap_or_else(|| {
+        match &env::var("TERM").ok() {
+            None => PresentationMode::Basic,
+            Some(s) if s == "dumb" => PresentationMode::Basic,
+            Some(_) => PresentationMode::Ncurses,
+        }
+    });
 
     let language = Language::from_str(language_str)?;
 

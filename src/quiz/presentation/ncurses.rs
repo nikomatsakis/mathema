@@ -16,12 +16,12 @@ impl Ncurses {
         Ncurses { window, row: 0 }
     }
 
-    fn getch(&mut self) -> Fallible<char> {
+    fn getch(&mut self) -> Fallible<i32> {
         let ch = check_ret!(ncurses::getch());
         if ch == 3 {
             throw!(MathemaErrorKind::ControlC);
         }
-        Ok(char::from_u32(ch as u32).unwrap())
+        Ok(ch)
     }
 
     fn read_line(
@@ -32,10 +32,18 @@ impl Ncurses {
         loop {
             check_ret!(ncurses::mvprintw(self.row, 0, &buffer));
             let ch = self.getch()?;
-            if ch == '\n' {
+            if ch == ncurses::KEY_ENTER || ch == 0xA {
+                // For some reason, I sometimes see `0xA` for enter.
                 break;
+            } else if ch == ncurses::KEY_BACKSPACE || ch == 0x7f {
+                // For some reason, I sometimes see `0x7f` for backspace.
+                buffer.pop();
+                let new_len = buffer.chars().count();
+                check_ret!(ncurses::mvprintw(self.row, new_len as i32, " "));
+            } else {
+                let ch = char::from_u32(ch as u32).unwrap();
+                push_char(ch, &mut buffer);
             }
-            push_char(ch, &mut buffer);
         }
         if buffer.is_empty() {
             Ok(None)
@@ -68,7 +76,7 @@ impl TextDelegate for Ncurses {
     }
 
     fn read_result(&mut self, _prompt: Prompt<'_>) -> Fallible<Option<QuestionResult>> {
-        let ch = check_ret!(ncurses::getch());
+        let ch = self.getch()?;
         match char::from_u32(ch as u32).unwrap() {
             'y' => Ok(Some(QuestionResult::Yes)),
             'a' => Ok(Some(QuestionResult::Almost)),

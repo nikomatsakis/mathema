@@ -78,9 +78,8 @@ enum MathemaCommand {
         #[structopt(help = "what language do you want to learn")]
         language: String,
 
-        #[structopt(long = "mode", help = "presentation mode (basic or ncurses)",
-                    default_value = "basic")]
-        mode: PresentationMode,
+        #[structopt(long = "mode", help = "presentation mode (basic or ncurses)")]
+        mode: Option<PresentationMode>,
 
         #[structopt(short = "d", long = "duration", help = "maximum duration in minutes",
                     default_value = "10")]
