@@ -98,13 +98,13 @@ impl FromStr for PresentationMode {
 }
 
 impl Presentation {
-    crate fn with_mode(mode: PresentationMode) -> Box<Presentation> {
+    crate fn with_mode(mode: PresentationMode) -> Box<dyn Presentation> {
         match mode {
             PresentationMode::Basic => {
-                Box::new(TextPresentation::new(basic::Basic::new())) as Box<Presentation>
+                Box::new(TextPresentation::new(basic::Basic::new())) as Box<dyn Presentation>
             }
             PresentationMode::Ncurses => {
-                Box::new(TextPresentation::new(ncurses::Ncurses::new())) as Box<Presentation>
+                Box::new(TextPresentation::new(ncurses::Ncurses::new())) as Box<dyn Presentation>
             }
         }
     }
