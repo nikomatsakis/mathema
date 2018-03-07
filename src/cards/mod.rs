@@ -165,7 +165,7 @@ impl fmt::Display for LineKind {
             LineKind::Comment => write!(fmt, "#"),
             LineKind::Meaning(lang) => write!(fmt, "{}", lang.abbreviation()),
             LineKind::PartOfSpeech => write!(fmt, "pos"),
-            LineKind::Aoristose => write!(fmt, "αόριστος"),
+            LineKind::Aoristos => write!(fmt, "αόριστος"),
         }
     }
 }
