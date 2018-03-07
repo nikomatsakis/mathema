@@ -24,6 +24,7 @@ crate enum LineKind {
     Comment,
     Meaning(Language),
     PartOfSpeech,
+    Aoristos,
 }
 
 impl Card {
@@ -106,6 +107,11 @@ fn parse_card(source_file: &Path, parser: &mut LineParser) -> Fallible<Card> {
                     kind: LineKind::PartOfSpeech,
                     text: remainder.to_string(),
                 });
+            } else if word0 == "αόριστος" {
+                card.lines.push(CardLine {
+                    kind: LineKind::Aoristos,
+                    text: remainder.to_string(),
+                });
             } else if let Ok(language) = Language::from_str(word0) {
                 let kind = LineKind::Meaning(language);
                 let text = language.transliterate(remainder);
@@ -159,6 +165,7 @@ impl fmt::Display for LineKind {
             LineKind::Comment => write!(fmt, "#"),
             LineKind::Meaning(lang) => write!(fmt, "{}", lang.abbreviation()),
             LineKind::PartOfSpeech => write!(fmt, "pos"),
+            LineKind::Aoristose => write!(fmt, "αόριστος"),
         }
     }
 }
