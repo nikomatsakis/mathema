@@ -2,32 +2,46 @@ use crate::prelude::*;
 
 mod test;
 
+crate struct CardAndExpirationDate {
+    crate uuid: Uuid,
+    crate kind: QuestionKind,
+    crate expiration: Option<(Duration, UtcDateTime)>,
+}
+
+crate fn expiration_dates(
+    repo: &'a MathemaRepository,
+    suitable_questions: &'a [QuestionKind],
+) -> impl Iterator<Item = CardAndExpirationDate> + 'a {
+    let db = repo.database();
+    repo.card_uuids()
+        .cartesian_product(suitable_questions)
+        .map(move |(uuid, &kind)| {
+            let expiration: Option<_> = do catch {
+                let record = db.card_record(uuid)?;
+                let duration = expiration_duration(kind, record)?;
+                Some((duration, record.last_asked(kind).unwrap() + duration))
+            };
+            CardAndExpirationDate { uuid, kind, expiration }
+        })
+}
+
 crate fn expired_cards(
     rng: &mut impl Rng,
     repo: &MathemaRepository,
     suitable_questions: &[QuestionKind],
 ) -> Vec<(Uuid, QuestionKind)> {
-    // Collect the expired cards in this vector.
+    // Collect the expired cards in these vectors.
     let mut expired: Vec<(Duration, usize, Uuid, QuestionKind)> = vec![];
     let mut never_asked: Vec<(Uuid, QuestionKind)> = vec![];
-
-    let db = repo.database();
     let now = Utc::now();
-    for uuid in repo.card_uuids() {
-        let record = db.card_record(uuid);
-        for &qk in suitable_questions {
-            if let Some(record) = record {
-                if let Some(duration) = expiration_duration(qk, record) {
-                    let expiration_date = record.last_asked(qk).unwrap() + duration;
-                    if now < expiration_date {
-                        let expired_by = now.signed_duration_since(expiration_date);
-                        expired.push((expired_by, rng.gen(), uuid, qk));
-                    }
-                } else {
-                    never_asked.push((uuid, qk));
-                }
-            } else {
-                never_asked.push((uuid, qk));
+    for card_data in expiration_dates(repo, suitable_questions) {
+        match card_data.expiration {
+            Some((_, expiration_date)) => {
+                let expired_by = now.signed_duration_since(expiration_date);
+                expired.push((expired_by, rng.gen(), card_data.uuid, card_data.kind));
+            }
+            None => {
+                never_asked.push((card_data.uuid, card_data.kind));
             }
         }
     }
