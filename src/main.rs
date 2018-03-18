@@ -33,7 +33,7 @@ extern crate walkdir;
 extern crate lazy_static;
 
 use crate::prelude::*;
-use ::{structopt::StructOpt, structopt_derive::StructOpt};
+use {structopt::StructOpt, structopt_derive::StructOpt};
 
 macro throw($t: expr) {
     return Err($t.into());
@@ -117,7 +117,11 @@ fn main1() -> Result<(), Error> {
     let args = &MathemaOptions::from_args();
 
     match &args.command {
-        MathemaCommand::Quiz { language, mode, duration } => {
+        MathemaCommand::Quiz {
+            language,
+            mode,
+            duration,
+        } => {
             quiz::quiz(args, language, *mode, *duration)?;
         }
 
