@@ -53,71 +53,90 @@ impl Language {
 }
 
 fn push_gr_char(c: char, s: &mut String) {
-    let last_is_semi = s.chars().last().map(|c| c == ';').unwrap_or(false);
-    let mut push = |not_semi: char, yes_semi: char| {
-        if last_is_semi && not_semi != yes_semi {
-            s.truncate(s.len() - 1);
-            s.push(yes_semi);
-        } else {
-            s.push(not_semi);
+    let mut push = |if_neither: char, if_semi: char, if_colon: char, if_both: char| {
+        let mut semi = false;
+        let mut colon = false;
+        if s.ends_with(":;") {
+            semi = true;
+            colon = true;
+        } else if s.ends_with(";:") {
+            semi = true;
+            colon = true;
+        } else if s.ends_with(":") {
+            colon = true;
+        } else if s.ends_with(";") {
+            semi = true;
         }
+
+        let (modifiers, modified) = if semi && colon && if_neither != if_both {
+            (2, if_both)
+        } else if semi && if_neither != if_semi {
+            (1, if_semi)
+        } else if colon && if_neither != if_colon {
+            (1, if_colon)
+        } else {
+            (0, if_neither)
+        };
+
+        s.truncate(s.len() - modifiers);
+        s.push(modified);
     };
 
     match c {
-        'a' => push('α', 'ά'),
-        'b' => push('β', 'β'),
-        'g' => push('γ', 'γ'),
-        'd' => push('δ', 'δ'),
-        'e' => push('ε', 'έ'),
-        'z' => push('ζ', 'ζ'),
-        'h' => push('η', 'ή'),
-        'u' => push('θ', 'θ'),
-        'i' => push('ι', 'ί'),
-        'k' => push('κ', 'κ'),
-        'l' => push('λ', 'λ'),
-        'm' => push('μ', 'μ'),
-        'n' => push('ν', 'ν'),
-        'j' => push('ξ', 'ξ'),
-        'o' => push('ο', 'ό'),
-        'p' => push('π', 'π'),
-        'r' => push('ρ', 'ρ'),
-        's' => push('σ', 'σ'),
-        't' => push('τ', 'τ'),
-        'y' => push('υ', 'ύ'),
-        'f' => push('φ', 'φ'),
-        'x' => push('χ', 'χ'),
-        'c' => push('ψ', 'ψ'),
-        'v' => push('ω', 'ώ'),
-        'w' => push('ς', 'ς'),
-        'q' => push(';', ';'),
+        'a' => push('α', 'ά', 'α', 'α'),
+        'b' => push('β', 'β', 'β', 'β'),
+        'g' => push('γ', 'γ', 'γ', 'γ'),
+        'd' => push('δ', 'δ', 'δ', 'δ'),
+        'e' => push('ε', 'έ', 'ε', 'ε'),
+        'z' => push('ζ', 'ζ', 'ζ', 'ζ'),
+        'h' => push('η', 'ή', 'η', 'η'),
+        'u' => push('θ', 'θ', 'θ', 'θ'),
+        'i' => push('ι', 'ί', 'ϊ', 'ΐ'),
+        'k' => push('κ', 'κ', 'κ', 'κ'),
+        'l' => push('λ', 'λ', 'λ', 'λ'),
+        'm' => push('μ', 'μ', 'μ', 'μ'),
+        'n' => push('ν', 'ν', 'ν', 'ν'),
+        'j' => push('ξ', 'ξ', 'ξ', 'ξ'),
+        'o' => push('ο', 'ό', 'ο', 'ο'),
+        'p' => push('π', 'π', 'π', 'π'),
+        'r' => push('ρ', 'ρ', 'ρ', 'ρ'),
+        's' => push('σ', 'σ', 'σ', 'σ'),
+        't' => push('τ', 'τ', 'τ', 'τ'),
+        'y' => push('υ', 'ύ', 'υ', 'υ'),
+        'f' => push('φ', 'φ', 'φ', 'φ'),
+        'x' => push('χ', 'χ', 'χ', 'χ'),
+        'c' => push('ψ', 'ψ', 'ψ', 'ψ'),
+        'v' => push('ω', 'ώ', 'ω', 'ω'),
+        'w' => push('ς', 'ς', 'ς', 'ς'),
+        'q' => push(';', ';', ';', ';'),
 
-        'A' => push('Α', 'Ά'),
-        'B' => push('Β', 'Β'),
-        'G' => push('Γ', 'Γ'),
-        'D' => push('Δ', 'Δ'),
-        'E' => push('Ε', 'Έ'),
-        'Z' => push('Ζ', 'Ζ'),
-        'H' => push('Η', 'Ή'),
-        'U' => push('Θ', 'Θ'),
-        'I' => push('Ι', 'Ί'),
-        'K' => push('Κ', 'Κ'),
-        'L' => push('Λ', 'Λ'),
-        'M' => push('Μ', 'Μ'),
-        'N' => push('Ν', 'Ν'),
-        'J' => push('Ξ', 'Ξ'),
-        'O' => push('Ο', 'Ό'),
-        'P' => push('Π', 'Π'),
-        'R' => push('Ρ', 'Ρ'),
-        'S' => push('Σ', 'Σ'),
-        'T' => push('Τ', 'Τ'),
-        'Y' => push('Υ', 'Ύ'),
-        'F' => push('Φ', 'Φ'),
-        'X' => push('Χ', 'Χ'),
-        'C' => push('Ψ', 'Ψ'),
-        'V' => push('Ω', 'Ώ'),
-        'Q' => push(':', ':'),
+        'A' => push('Α', 'Ά', 'Α', 'Α'),
+        'B' => push('Β', 'Β', 'Β', 'Β'),
+        'G' => push('Γ', 'Γ', 'Γ', 'Γ'),
+        'D' => push('Δ', 'Δ', 'Δ', 'Δ'),
+        'E' => push('Ε', 'Έ', 'Ε', 'Ε'),
+        'Z' => push('Ζ', 'Ζ', 'Ζ', 'Ζ'),
+        'H' => push('Η', 'Ή', 'Η', 'Η'),
+        'U' => push('Θ', 'Θ', 'Θ', 'Θ'),
+        'I' => push('Ι', 'Ί', 'Ϊ', 'Ι'),
+        'K' => push('Κ', 'Κ', 'Κ', 'Κ'),
+        'L' => push('Λ', 'Λ', 'Λ', 'Λ'),
+        'M' => push('Μ', 'Μ', 'Μ', 'Μ'),
+        'N' => push('Ν', 'Ν', 'Ν', 'Ν'),
+        'J' => push('Ξ', 'Ξ', 'Ξ', 'Ξ'),
+        'O' => push('Ο', 'Ό', 'Ο', 'Ο'),
+        'P' => push('Π', 'Π', 'Π', 'Π'),
+        'R' => push('Ρ', 'Ρ', 'Ρ', 'Ρ'),
+        'S' => push('Σ', 'Σ', 'Σ', 'Σ'),
+        'T' => push('Τ', 'Τ', 'Τ', 'Τ'),
+        'Y' => push('Υ', 'Ύ', 'Υ', 'Υ'),
+        'F' => push('Φ', 'Φ', 'Φ', 'Φ'),
+        'X' => push('Χ', 'Χ', 'Χ', 'Χ'),
+        'C' => push('Ψ', 'Ψ', 'Ψ', 'Ψ'),
+        'V' => push('Ω', 'Ώ', 'Ω', 'Ω'),
+        'Q' => push(':', ':', ':', ':'),
 
-        _ => push(c, c),
+        _ => push(c, c, c, c),
     }
 }
 
@@ -132,7 +151,40 @@ fn push_giasou() {
 }
 
 #[test]
+fn push_throizw() {
+    let string = &mut String::new();
+    for c in "uro:;izv".chars() {
+        Language::Greek.push_char(c, string);
+    }
+
+    assert_eq!(&string[..], "θροΐζω");
+}
+
+#[test]
+fn push_throizw2() {
+    let string = &mut String::new();
+    for c in "uro;:izv".chars() {
+        Language::Greek.push_char(c, string);
+    }
+
+    assert_eq!(&string[..], "θροΐζω");
+}
+
+#[test]
+fn push_throizw3() {
+    let string = &mut String::new();
+    for c in "uro:;azv".chars() {
+        Language::Greek.push_char(c, string);
+    }
+
+    assert_eq!(&string[..], "θρο:άζω");
+}
+
+#[test]
 fn transliterate_giasou() {
     assert_eq!(Language::Greek.transliterate("g;iasoy"), "γίασου");
-    assert_eq!(Language::Greek.transliterate("ftervt;ow"), "φτερωτός");
+    assert_eq!(
+        Language::Greek.transliterate("ftervt;ow"),
+        "φτερωτός"
+    );
 }
