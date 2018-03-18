@@ -97,7 +97,7 @@ impl FromStr for PresentationMode {
     }
 }
 
-impl Presentation {
+impl dyn Presentation {
     crate fn with_mode(mode: PresentationMode) -> Box<dyn Presentation> {
         match mode {
             PresentationMode::Basic => {

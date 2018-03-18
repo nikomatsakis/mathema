@@ -1,3 +1,5 @@
+#![allow(bare_trait_object)]
+
 use crate::prelude::*;
 
 use ::failure::Context;

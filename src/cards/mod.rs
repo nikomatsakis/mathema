@@ -142,7 +142,7 @@ crate fn write_cards_file(target_file: &Path, cards: &[Card]) -> Fallible<()> {
     Ok(())
 }
 
-crate fn write_cards_to(output: &mut io::Write, cards: &[Card]) -> Fallible<()> {
+crate fn write_cards_to(output: &mut dyn io::Write, cards: &[Card]) -> Fallible<()> {
     let mut sep = "";
     for card in cards {
         write!(output, "{}", sep)?;
