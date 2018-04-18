@@ -19,7 +19,7 @@ crate fn expiration_dates(
             let expiration: Option<_> = do catch {
                 let record = db.card_record(uuid)?;
                 let duration = expiration_duration(kind, record)?;
-                Some((duration, record.last_asked(kind).unwrap() + duration))
+                (duration, record.last_asked(kind).unwrap() + duration)
             };
             CardAndExpirationDate { uuid, kind, expiration }
         })

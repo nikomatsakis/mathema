@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 #![deny(unused_must_use)] // always a bug
 #![feature(catch_expr,
-           crate_in_paths, conservative_impl_trait, crate_visibility_modifier, decl_macro,
+           crate_in_paths, crate_visibility_modifier, decl_macro,
            dyn_trait, /*FIXME(rust-lang/rust#47075) extern_absolute_paths,*/
            /* https://github.com/rust-lang-nursery/rls/issues/729 extern_in_paths,*/
-           inclusive_range_syntax, in_band_lifetimes, match_default_bindings, nll,
-           termination_trait, underscore_lifetimes, universal_impl_trait)]
+           in_band_lifetimes, match_default_bindings, nll,
+           underscore_lifetimes)]
 
 // FIXME can't use this because of format!
 //#![deny(elided_lifetime_in_path)]
