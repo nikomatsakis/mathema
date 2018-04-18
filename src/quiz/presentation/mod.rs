@@ -41,6 +41,8 @@ crate trait Presentation {
         &mut self,
         prompt: Prompt<'_>,
         missing_answers: &[&str],
+        correct_answers: &[String],
+        incorrect_answers: &[String],
     ) -> Fallible<QuestionResult>;
 
     /// Invoked repeatedly if user says they got it wrong.

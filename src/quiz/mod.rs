@@ -2,21 +2,19 @@ use crate::prelude::*;
 
 crate mod presentation;
 
-const SUITABLE_QUESTIONS: &[(Language, &[QuestionKind])] = &[
-    (
-        Language::Greek,
-        &[
-            QuestionKind::Translate {
-                from: Language::English,
-                to: Language::Greek,
-            },
-            QuestionKind::Translate {
-                from: Language::Greek,
-                to: Language::English,
-            },
-        ],
-    ),
-];
+const SUITABLE_QUESTIONS: &[(Language, &[QuestionKind])] = &[(
+    Language::Greek,
+    &[
+        QuestionKind::Translate {
+            from: Language::English,
+            to: Language::Greek,
+        },
+        QuestionKind::Translate {
+            from: Language::Greek,
+            to: Language::English,
+        },
+    ],
+)];
 
 lazy_static! {
     static ref PARENTHETICALS: Regex = Regex::new(r"\(.*\)").unwrap();
@@ -30,12 +28,10 @@ crate fn quiz(
 ) -> Fallible<()> {
     let rng = &mut rand::thread_rng();
 
-    let mode = mode.unwrap_or_else(|| {
-        match &env::var("TERM").ok() {
-            None => PresentationMode::Basic,
-            Some(s) if s == "dumb" => PresentationMode::Basic,
-            Some(_) => PresentationMode::Ncurses,
-        }
+    let mode = mode.unwrap_or_else(|| match &env::var("TERM").ok() {
+        None => PresentationMode::Basic,
+        Some(s) if s == "dumb" => PresentationMode::Basic,
+        Some(_) => PresentationMode::Ncurses,
     });
 
     let language = Language::from_str(language_str)?;
@@ -121,10 +117,20 @@ impl Quiz<'o> {
             presentation.start_prompt(prompt)?;
 
             let mut counter = 1;
+            let mut total_responses = expected_responses.len();
+            let mut wrong_responses = vec![];
+            let mut correct_responses = vec![];
             while let Some(user_response) = presentation.read_response(prompt, counter)? {
+                let len_before = expected_responses.len();
                 expected_responses.retain(|r| !check_user_response(r, &user_response));
 
-                if counter >= expected_responses.len() {
+                if expected_responses.len() != len_before {
+                    wrong_responses.push(user_response);
+                } else {
+                    correct_responses.push(user_response);
+                }
+
+                if counter >= total_responses {
                     break;
                 }
 
@@ -134,7 +140,12 @@ impl Quiz<'o> {
             let result = if expected_responses.is_empty() {
                 QuestionResult::Yes
             } else {
-                presentation.read_result(prompt, &expected_responses)?
+                presentation.read_result(
+                    prompt,
+                    &expected_responses,
+                    &correct_responses,
+                    &wrong_responses,
+                )?
             };
 
             // If they said NO, then let's have them repeat until everything looks
@@ -180,14 +191,13 @@ impl Quiz<'o> {
     }
 }
 
-fn check_user_response(
-    expected_response: &str,
-    user_response: &str,
-) -> bool {
+fn check_user_response(expected_response: &str, user_response: &str) -> bool {
     let user_response = user_response.trim();
     let expected_response = PARENTHETICALS.replace_all(expected_response, "");
     expected_response.trim() == user_response || {
-        expected_response.split(",").any(|r| r.trim() == user_response)
+        expected_response
+            .split(",")
+            .any(|r| r.trim() == user_response)
     }
 }
 

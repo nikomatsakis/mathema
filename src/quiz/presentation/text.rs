@@ -22,6 +22,10 @@ macro println($this:expr, $($args:tt)*) {
     $this.delegate.println(&format!($($args)*))?;
 }
 
+const INCORRECT: &str = "\u{1F4A3}";
+const CORRECT: &str = "\u{1F389}";
+const MISSING: &str = "\u{1F526}";
+
 impl<D: TextDelegate> Presentation for TextPresentation<D> {
     fn start_prompt(&mut self, prompt: Prompt<'_>) -> Fallible<()> {
         println!(self, "Please {}:", prompt.question_kind.prompt_text());
@@ -41,10 +45,28 @@ impl<D: TextDelegate> Presentation for TextPresentation<D> {
         &mut self,
         prompt: Prompt<'_>,
         missing_answers: &[&str],
+        correct_answers: &[String],
+        incorrect_answers: &[String],
     ) -> Fallible<QuestionResult> {
-        println!(self, "Missing answers:");
-        for answer in missing_answers {
-            println!(self, "- {}", answer);
+        if !incorrect_answers.is_empty() {
+            println!(self, "Incorrect answers:");
+            for answer in incorrect_answers {
+                println!(self, "{} {}", INCORRECT, answer);
+            }
+        }
+
+        if !correct_answers.is_empty() {
+            println!(self, "Correct answers:");
+            for answer in correct_answers {
+                println!(self, "{} {}", CORRECT, answer);
+            }
+        }
+
+        if !missing_answers.is_empty() {
+            println!(self, "Missing answers:");
+            for answer in missing_answers {
+                println!(self, "{} {}", MISSING, answer);
+            }
         }
 
         loop {
