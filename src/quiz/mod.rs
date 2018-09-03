@@ -75,7 +75,7 @@ struct Quiz<'o> {
     mode: PresentationMode,
 }
 
-impl Quiz<'o> {
+impl Quiz<'_> {
     fn run(self) -> Fallible<()> {
         let original_start_time = Utc::now();
         let mut start_time = Utc::now();
