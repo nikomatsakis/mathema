@@ -160,7 +160,7 @@ crate fn write_cards_to(output: &mut dyn io::Write, cards: &[Card]) -> Fallible<
 }
 
 impl fmt::Display for LineKind {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             LineKind::Comment => write!(fmt, "#"),
             LineKind::Meaning(lang) => write!(fmt, "{}", lang.abbreviation()),

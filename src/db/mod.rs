@@ -169,7 +169,7 @@ impl QuestionKind {
 struct PromptText(QuestionKind);
 
 impl fmt::Display for PromptText {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
             QuestionKind::Translate { from, to } => {
                 write!(fmt, "translate from {} to {}", from.full_name(), to.full_name())?;

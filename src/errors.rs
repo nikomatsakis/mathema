@@ -108,7 +108,7 @@ impl From<MathemaErrorKind> for MathemaError {
 }
 
 impl fmt::Display for MathemaError {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(fmt, "{}", self.error)?;
         match self.error.get_context() {
             MathemaErrorKind::Unexpected => {
