@@ -117,17 +117,17 @@ impl Quiz<'o> {
             presentation.start_prompt(prompt)?;
 
             let mut counter = 1;
-            let mut total_responses = expected_responses.len();
-            let mut wrong_responses = vec![];
+            let total_responses = expected_responses.len();
+            let mut incorrect_responses = vec![];
             let mut correct_responses = vec![];
             while let Some(user_response) = presentation.read_response(prompt, counter)? {
                 let len_before = expected_responses.len();
                 expected_responses.retain(|r| !check_user_response(r, &user_response));
 
                 if expected_responses.len() != len_before {
-                    wrong_responses.push(user_response);
-                } else {
                     correct_responses.push(user_response);
+                } else {
+                    incorrect_responses.push(user_response);
                 }
 
                 if counter >= total_responses {
@@ -144,7 +144,7 @@ impl Quiz<'o> {
                     prompt,
                     &expected_responses,
                     &correct_responses,
-                    &wrong_responses,
+                    &incorrect_responses,
                 )?
             };
 

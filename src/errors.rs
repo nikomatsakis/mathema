@@ -1,4 +1,4 @@
-#![allow(bare_trait_object)]
+#![allow(bare_trait_objects)]
 
 use crate::prelude::*;
 

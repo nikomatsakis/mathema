@@ -16,11 +16,11 @@ crate fn expiration_dates(
     repo.card_uuids()
         .cartesian_product(suitable_questions)
         .map(move |(uuid, &kind)| {
-            let expiration: Option<_> = do catch {
+            let expiration = (|| -> Option<_> {
                 let record = db.card_record(uuid)?;
                 let duration = expiration_duration(kind, record)?;
-                (duration, record.last_asked(kind).unwrap() + duration)
-            };
+                Some((duration, record.last_asked(kind).unwrap() + duration))
+            })();
             CardAndExpirationDate { uuid, kind, expiration }
         })
 }
@@ -69,6 +69,11 @@ crate fn expired_cards(
     }
     final_list.extend(expired);
     final_list.extend(never_asked);
+
+    // Retain just one question per card, whichever one we happened to
+    // pick first I guess.
+    let mut just_one_per_card = HashSet::new();
+    final_list.retain(|(uuid, _qk)| just_one_per_card.insert(*uuid));
 
     final_list
 }

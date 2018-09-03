@@ -53,6 +53,11 @@ impl Language {
 }
 
 fn push_gr_char(c: char, s: &mut String) {
+    // Adjustments:
+    // q = ;
+    // Q = :
+    // W = ; + : accent
+
     let mut push = |if_neither: char, if_semi: char, if_colon: char, if_both: char| {
         let mut semi = false;
         let mut colon = false;

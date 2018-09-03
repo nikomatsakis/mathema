@@ -16,29 +16,27 @@ crate use crate::{
     uuid_ext::UuidExt,
 };
 
-crate use crate::{
-    atomicwrites::{self, AtomicFile, OverwriteBehavior},
-    chrono::{DateTime, Duration, Utc, prelude::*},
-    cursive::Cursive,
-    cursive::views::{Dialog, TextView},
-    failure::{self, bail, Error, Fail, ResultExt},
-    git2,
-    itertools::Itertools,
-    rand::{self, Rng, ThreadRng},
-    regex::Regex,
-    serde_derive::{Serialize, Deserialize},
-    std::char,
-    std::collections::{BTreeSet, BTreeMap, HashMap},
-    std::env,
-    std::fmt,
-    std::mem,
-    std::io::{self, prelude::*},
-    std::fs::{self, File},
-    std::path::{self, Path, PathBuf},
-    std::str::FromStr,
-    std::u64,
-    uuid::Uuid,
-    walkdir::WalkDir,
-};
+crate use atomicwrites::{self, AtomicFile, OverwriteBehavior};
+crate use chrono::{DateTime, Duration, Utc, prelude::*};
+crate use cursive::Cursive;
+crate use cursive::views::{Dialog, TextView};
+crate use failure::{self, bail, Error, Fail, ResultExt};
+crate use git2;
+crate use itertools::Itertools;
+crate use rand::{self, Rng, ThreadRng};
+crate use regex::Regex;
+crate use serde_derive::{Serialize, Deserialize};
+crate use std::char;
+crate use std::collections::{BTreeSet, BTreeMap, HashMap, HashSet};
+crate use std::env;
+crate use std::fmt;
+crate use std::mem;
+crate use std::io::{self, prelude::*};
+crate use std::fs::{self, File};
+crate use std::path::{self, Path, PathBuf};
+crate use std::str::FromStr;
+crate use std::u64;
+crate use uuid::Uuid;
+crate use walkdir::WalkDir;
 
 crate type UtcDateTime = DateTime<Utc>;
