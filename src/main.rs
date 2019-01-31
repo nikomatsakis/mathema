@@ -2,6 +2,7 @@
 #![deny(unused_must_use)] // always a bug
 #![feature(decl_macro)]
 #![feature(in_band_lifetimes)]
+#![feature(crate_visibility_modifier)]
 #![warn(rust_2018_idioms)]
 
 // FIXME can't use this because of format!
