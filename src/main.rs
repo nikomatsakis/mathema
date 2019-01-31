@@ -25,6 +25,7 @@ macro throw($t: expr) {
 mod add;
 mod cards;
 mod db;
+mod dump;
 mod errors;
 mod git;
 mod language;
@@ -121,7 +122,7 @@ fn main1() -> Result<(), Error> {
         }
 
         MathemaCommand::Dump {} => {
-            println!("Dumping cards");
+            dump::dump(args)?;
         }
     }
     Ok(())
