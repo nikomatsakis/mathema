@@ -2,6 +2,7 @@
 #![deny(unused_must_use)] // always a bug
 #![feature(decl_macro)]
 #![feature(in_band_lifetimes)]
+#![feature(try_blocks)]
 #![feature(crate_visibility_modifier)]
 #![warn(rust_2018_idioms)]
 
@@ -70,7 +71,14 @@ enum MathemaCommand {
         duration: i64,
     },
 
-    #[structopt(name = "dump", about = "dump info about cards")] Dump,
+    #[structopt(name = "dump", about = "dump info about cards")] Dump {
+        #[structopt(help = "substring to match against dumped cards")]
+        filter: Option<String>,
+
+        #[structopt(long = "expired", help = "dump only expired cards",
+                    default_value = "false")]
+        expired: bool,
+    },
 
     #[structopt(name = "new", about = "create a new deck of cards")]
     New {
@@ -121,8 +129,8 @@ fn main1() -> Result<(), Error> {
             add::add(args, file)?;
         }
 
-        MathemaCommand::Dump {} => {
-            dump::dump(args)?;
+        MathemaCommand::Dump { filter, expired } => {
+            dump::dump(args, filter, *expired)?;
         }
     }
     Ok(())

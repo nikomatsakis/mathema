@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 crate mod presentation;
 
-const SUITABLE_QUESTIONS: &[(Language, &[QuestionKind])] = &[(
+crate const SUITABLE_QUESTIONS: &[(Language, &[QuestionKind])] = &[(
     Language::Greek,
     &[
         QuestionKind::Translate {

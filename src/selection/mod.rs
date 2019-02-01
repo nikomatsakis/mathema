@@ -21,7 +21,11 @@ crate fn expiration_dates(
                 let duration = expiration_duration(kind, record)?;
                 Some((duration, record.last_asked(kind).unwrap() + duration))
             })();
-            CardAndExpirationDate { uuid, kind, expiration }
+            CardAndExpirationDate {
+                uuid,
+                kind,
+                expiration,
+            }
         })
 }
 
@@ -37,8 +41,10 @@ crate fn expired_cards(
     for card_data in expiration_dates(repo, suitable_questions) {
         match card_data.expiration {
             Some((_, expiration_date)) => {
-                let expired_by = now.signed_duration_since(expiration_date);
-                expired.push((expired_by, rng.gen(), card_data.uuid, card_data.kind));
+                if expiration_date < now {
+                    let expired_by = now.signed_duration_since(expiration_date);
+                    expired.push((expired_by, rng.gen(), card_data.uuid, card_data.kind));
+                }
             }
             None => {
                 never_asked.push((card_data.uuid, card_data.kind));
@@ -105,7 +111,7 @@ crate fn expired_cards(
 //
 //
 
-fn expiration_duration(question_kind: QuestionKind, record: &CardRecord) -> Option<Duration> {
+crate fn expiration_duration(question_kind: QuestionKind, record: &CardRecord) -> Option<Duration> {
     let last_question = record.questions(question_kind).last()?;
     let durations = record
         .question_pairs(question_kind)

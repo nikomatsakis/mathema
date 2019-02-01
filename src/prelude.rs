@@ -7,6 +7,7 @@ crate use crate::{
     errors::{Fallible, MathemaError, MathemaErrorKind},
     git::MathemaRepository,
     language::Language,
+    quiz::SUITABLE_QUESTIONS,
     quiz::presentation::{Presentation, PresentationMode, Prompt},
     quiz::presentation::text::{TextPresentation, TextDelegate},
     selection,
