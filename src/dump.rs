@@ -53,10 +53,31 @@ fn dump_card(
     for &question_kind in question_kinds {
         let ever_asked: Option<()> = try {
             let record = db.card_record(uuid)?;
-            let last_asked = record.last_asked(question_kind)?;
+            let last_question = record.questions(question_kind).last()?;
+
+            let mut next: Option<&QuestionRecord> = None;
+            for question in record.questions(question_kind).iter().rev() {
+                let interval: Option<_> = try {
+                    format!(" (interval {})", next?.date.signed_duration_since(question.date))
+                };
+
+                println!(
+                    "* Got {:?} on {}{}",
+                    question.result,
+                    question.date,
+                    interval.unwrap_or_default(),
+                );
+
+                next = Some(question);
+
+                if question.result != last_question.result {
+                    break;
+                }
+            }
+
             match selection::expiration_duration(question_kind, record) {
                 Some(duration) => {
-                    let expiration_date = last_asked + duration;
+                    let expiration_date = last_question.date + duration;
                     println!(
                         "* {}: expires on {} (duration {})",
                         question_kind.prompt_text(), expiration_date, duration,
@@ -65,8 +86,9 @@ fn dump_card(
 
                 None => {
                     println!(
-                        "* {}: Not enough data to figure out when to ask next. Last asked on {}.",
-                        question_kind.prompt_text(), last_asked,
+                        "* {}: Not enough data to figure out when to ask next.\
+                       \n  Last asked on {}.",
+                        question_kind.prompt_text(), last_question.date,
                     );
                 }
             }
@@ -76,6 +98,7 @@ fn dump_card(
             println!("* {}: No record of ever asking this", question_kind.prompt_text());
         }
     }
+    println!("");
 
     Ok(())
 }
