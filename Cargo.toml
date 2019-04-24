@@ -21,6 +21,7 @@ serde = "1.0.27"
 serde_derive = "1.0"
 ron = "0.2"
 walkdir = "2.0"
+tide = { git = "https://github.com/rustasync/tide.git", branch = "master" }
 
 [dependencies.uuid]
 version = "0.6.0-beta"

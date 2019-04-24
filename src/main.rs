@@ -2,8 +2,10 @@
 #![deny(unused_must_use)] // always a bug
 #![feature(decl_macro)]
 #![feature(in_band_lifetimes)]
+#![feature(proc_macro_hygiene)]
 #![feature(try_blocks)]
 #![feature(crate_visibility_modifier)]
+#![feature(async_await)]
 #![warn(rust_2018_idioms)]
 
 // FIXME can't use this because of format!
@@ -32,10 +34,11 @@ mod git;
 mod language;
 mod line_parser;
 mod new;
-mod status;
 mod prelude;
 mod quiz;
 mod selection;
+mod serve;
+mod status;
 mod test;
 mod uuid_ext;
 
@@ -46,7 +49,11 @@ struct MathemaOptions {
     #[structopt(name = "directory", help = "where your existing cards can be found")]
     directory: Option<String>,
 
-    #[structopt(short = "f", long = "force", help = "continue despite ignorable errors")]
+    #[structopt(
+        short = "f",
+        long = "force",
+        help = "continue despite ignorable errors"
+    )]
     force: bool,
 
     #[structopt(long = "dry-run", help = "do not write changes to disk")]
@@ -66,17 +73,25 @@ enum MathemaCommand {
         #[structopt(long = "mode", help = "presentation mode (basic or ncurses)")]
         mode: Option<PresentationMode>,
 
-        #[structopt(short = "d", long = "duration", help = "maximum duration in minutes",
-                    default_value = "10")]
+        #[structopt(
+            short = "d",
+            long = "duration",
+            help = "maximum duration in minutes",
+            default_value = "10"
+        )]
         duration: i64,
     },
 
-    #[structopt(name = "dump", about = "dump info about cards")] Dump {
+    #[structopt(name = "dump", about = "dump info about cards")]
+    Dump {
         #[structopt(help = "substring to match against dumped cards")]
         filter: Option<String>,
 
-        #[structopt(long = "expired", help = "dump only expired cards",
-                    default_value = "false")]
+        #[structopt(
+            long = "expired",
+            help = "dump only expired cards",
+            default_value = "false"
+        )]
         expired: bool,
     },
 
@@ -86,13 +101,17 @@ enum MathemaCommand {
         directory: String,
     },
 
-    #[structopt(name = "status", about = "check on the status of your cards")] Status,
+    #[structopt(name = "status", about = "check on the status of your cards")]
+    Status,
 
     #[structopt(name = "add", about = "add new cards from file")]
     Add {
         #[structopt(help = "new card file")]
         file: String,
     },
+
+    #[structopt(name = "serve", about = "serve information about your cards over JSON")]
+    Serve {},
 }
 
 fn main() {
@@ -131,6 +150,10 @@ fn main1() -> Result<(), Error> {
 
         MathemaCommand::Dump { filter, expired } => {
             dump::dump(args, filter, *expired)?;
+        }
+
+        MathemaCommand::Serve {} => {
+            serve::serve(args)?;
         }
     }
     Ok(())

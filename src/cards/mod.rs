@@ -6,20 +6,20 @@ crate struct CardSet {
     cards: HashMap<Uuid, Card>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 crate struct Card {
     crate uuid: Option<Uuid>,
     crate start_line: u64,
     crate lines: Vec<CardLine>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 crate struct CardLine {
     crate kind: LineKind,
     crate text: String,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 crate enum LineKind {
     Comment,
     Meaning(Language),
@@ -137,7 +137,8 @@ crate fn write_cards_file(target_file: &Path, cards: &[Card]) -> Fallible<()> {
     AtomicFile::new(
         target_file.canonicalize()?,
         OverwriteBehavior::AllowOverwrite,
-    ).write(|f| write_cards_to(f, cards))?;
+    )
+    .write(|f| write_cards_to(f, cards))?;
 
     Ok(())
 }
@@ -169,4 +170,3 @@ impl fmt::Display for LineKind {
         }
     }
 }
-
