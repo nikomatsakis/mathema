@@ -1,6 +1,7 @@
+#![cfg(feature = "console")]
+
 use crate::prelude::*;
 use ncurses;
-
 crate struct Ncurses {
     window: ncurses::WINDOW,
     row: i32,

@@ -4,18 +4,22 @@ version = "0.1.0"
 authors = ["Niko Matsakis <niko@alum.mit.edu>"]
 edition = "2018"
 
+[features]
+default = []
+console = ["ncurses", "cursive"]
+
 [dependencies]
 atomicwrites = "0.1"
-cursive = "0.7"
+cursive =  { version="0.7", optional = true }
 failure = "0.1.1"
 itertools = "0.7.6"
 structopt = "0.1.7"
 structopt-derive = "0.1.6"
-git2 = "0.6.11"
+git2 = "0.8"
 lazy_static = "1.0"
 rand = "0.4"
 regex = "0.2"
-ncurses = "5.0"
+ncurses = { version="5.0", optional = true }
 string-interner = "0.6.3"
 serde = "1.0.27"
 serde_derive = "1.0"

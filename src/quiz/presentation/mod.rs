@@ -105,8 +105,15 @@ impl dyn Presentation {
             PresentationMode::Basic => {
                 Box::new(TextPresentation::new(basic::Basic::new())) as Box<dyn Presentation>
             }
+
+            #[cfg(feature = "console")]
             PresentationMode::Ncurses => {
                 Box::new(TextPresentation::new(ncurses::Ncurses::new())) as Box<dyn Presentation>
+            }
+
+            #[cfg(not(feature = "console"))]
+            PresentationMode::Ncurses => {
+                panic!("ncurses support was not compiled in, try building with `--feature console`")
             }
         }
     }

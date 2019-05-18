@@ -19,7 +19,9 @@ crate use crate::{
 
 crate use atomicwrites::{self, AtomicFile, OverwriteBehavior};
 crate use chrono::{DateTime, Duration, Utc, prelude::*};
+#[cfg(feature = "console")]
 crate use cursive::Cursive;
+#[cfg(feature = "console")]
 crate use cursive::views::{Dialog, TextView};
 crate use failure::{self, bail, Error, Fail, ResultExt};
 crate use git2;
