@@ -26,8 +26,8 @@ crate fn serve(options: &MathemaOptions) -> Fallible<()> {
         }
 
         let mut app = tide::App::with_state(Mutex::new(repo));
-        app.at("/cards").get(serve_cards);
-        app.at("/card/:uuid").get(serve_card);
+        app.at("/api/cards").get(serve_cards);
+        app.at("/api/card/:uuid").get(serve_card);
         app.serve("127.0.0.1:8000")?;
     }
 }
