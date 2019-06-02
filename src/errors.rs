@@ -2,8 +2,8 @@
 
 use crate::prelude::*;
 
-use ::failure::Context;
-use ::std::fmt;
+use failure::Context;
+use std::fmt;
 
 pub(crate) type Fallible<T> = Result<T, MathemaError>;
 
