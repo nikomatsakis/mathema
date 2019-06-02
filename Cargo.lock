@@ -743,7 +743,7 @@ dependencies = [
  "structopt 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt-derive 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "tempdir 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
- "tide 0.2.0 (git+https://github.com/rustasync/tide.git)",
+ "tide 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 2.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -1565,7 +1565,7 @@ dependencies = [
 [[package]]
 name = "tide"
 version = "0.2.0"
-source = "git+https://github.com/rustasync/tide.git#48ef02e178a1de6c2f3b62ae28c94d52a1396fe4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cookie 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2111,7 +2111,7 @@ dependencies = [
 "checksum termion 1.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "dde0593aeb8d47accea5392b39350015b5eccb12c0d98044d856983d89548dea"
 "checksum textwrap 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d326610f408c7a4eb6f51c37c330e496b08506c9457c9d34287ecc38809fb060"
 "checksum thread_local 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)" = "c6b53e329000edc2b34dbe8545fd20e55a333362d0a321909685a19bd28c3f1b"
-"checksum tide 0.2.0 (git+https://github.com/rustasync/tide.git)" = "<none>"
+"checksum tide 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6dadb774f9ea0f8bccdfbb15b792bc542ef654e6d1a01b4b03d65d0eb8be56c7"
 "checksum time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)" = "db8dcfca086c1143c9270ac42a2bbd8a7ee477b78ac8e45b19abfb0cbede4b6f"
 "checksum tokio 0.1.19 (registry+https://github.com/rust-lang/crates.io-index)" = "cec6c34409089be085de9403ba2010b80e36938c9ca992c4f67f407bb13db0b1"
 "checksum tokio-current-thread 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "d16217cad7f1b840c5a97dfb3c43b0c871fef423a6e8d2118c604e843662a443"
