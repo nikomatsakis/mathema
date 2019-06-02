@@ -54,15 +54,13 @@ impl Ncurses {
     }
 }
 
-macro check_ret($e: expr) {
-    {
-        let result = $e;
-        if result < 0 {
-            panic!("obscure ncurses error: {}", result);
-        }
-        result
+macro check_ret($e: expr) {{
+    let result = $e;
+    if result < 0 {
+        panic!("obscure ncurses error: {}", result);
     }
-}
+    result
+}}
 
 impl TextDelegate for Ncurses {
     fn println(&mut self, text: &str) -> Fallible<()> {

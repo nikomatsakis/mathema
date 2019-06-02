@@ -52,11 +52,12 @@ impl MathemaRepository {
     crate fn open_full(dry_run: bool, directory: impl AsRef<Path>) -> Fallible<MathemaRepository> {
         let directory_path = directory.as_ref().to_owned();
         let db_path = directory_path.join(RELATIVE_DB_PATH);
-        let database = Self::read_from(&db_path, |f| Database::load_from(f)).with_context(|_| {
-            MathemaErrorKind::CannotLoadDatabase {
-                database_path: db_path.display().to_string(),
-            }
-        })?;
+        let database =
+            Self::read_from(&db_path, |f| Database::load_from(f)).with_context(|_| {
+                MathemaErrorKind::CannotLoadDatabase {
+                    database_path: db_path.display().to_string(),
+                }
+            })?;
 
         let repository = git2::Repository::open(&directory_path).with_context(|_| {
             MathemaErrorKind::NoGitRepositoryFound {

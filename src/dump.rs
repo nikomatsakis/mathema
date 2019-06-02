@@ -58,7 +58,10 @@ fn dump_card(
             let mut next: Option<&QuestionRecord> = None;
             for question in record.questions(question_kind).iter().rev() {
                 let interval: Option<_> = try {
-                    format!(" (interval {})", next?.date.signed_duration_since(question.date))
+                    format!(
+                        " (interval {})",
+                        next?.date.signed_duration_since(question.date)
+                    )
                 };
 
                 println!(
@@ -80,22 +83,28 @@ fn dump_card(
                     let expiration_date = last_question.date + duration;
                     println!(
                         "* {}: expires on {} (duration {})",
-                        question_kind.prompt_text(), expiration_date, duration,
+                        question_kind.prompt_text(),
+                        expiration_date,
+                        duration,
                     );
                 }
 
                 None => {
                     println!(
                         "* {}: Not enough data to figure out when to ask next.\
-                       \n  Last asked on {}.",
-                        question_kind.prompt_text(), last_question.date,
+                         \n  Last asked on {}.",
+                        question_kind.prompt_text(),
+                        last_question.date,
                     );
                 }
             }
         };
 
         if let None = ever_asked {
-            println!("* {}: No record of ever asking this", question_kind.prompt_text());
+            println!(
+                "* {}: No record of ever asking this",
+                question_kind.prompt_text()
+            );
         }
     }
     println!("");

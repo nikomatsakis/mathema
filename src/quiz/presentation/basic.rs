@@ -8,7 +8,6 @@ impl Basic {
     crate fn new() -> Self {
         Basic { stdin: io::stdin() }
     }
-
 }
 
 impl TextDelegate for Basic {

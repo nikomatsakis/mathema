@@ -1,7 +1,7 @@
-use std::sync::Mutex;
-use crate::git::MathemaRepository;
 use crate::errors::Fallible;
+use crate::git::MathemaRepository;
 use crate::MathemaOptions;
+use std::sync::Mutex;
 use uuid::Uuid;
 
 async fn serve_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {

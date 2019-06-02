@@ -30,7 +30,8 @@ impl FromStr for Language {
             "en" => Ok(Language::English),
             _ => Err(MathemaErrorKind::UnrecognizedLanguage {
                 text: s.to_string(),
-            }.into()),
+            }
+            .into()),
         }
     }
 }

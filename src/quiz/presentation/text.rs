@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 crate struct TextPresentation<D: TextDelegate> {
-    delegate: D
+    delegate: D,
 }
 
 impl<D: TextDelegate> TextPresentation<D> {
@@ -86,11 +86,7 @@ impl<D: TextDelegate> Presentation for TextPresentation<D> {
         self.delegate.read_answer(prompt)
     }
 
-    fn try_again(
-        &mut self,
-        _prompt: Prompt<'_>,
-        _expected_answer: &str,
-    ) -> Fallible<()> {
+    fn try_again(&mut self, _prompt: Prompt<'_>, _expected_answer: &str) -> Fallible<()> {
         println!(self, "Not quite, try again!");
         Ok(())
     }
@@ -109,22 +105,22 @@ impl<D: TextDelegate> Presentation for TextPresentation<D> {
             "{} minutes have expired since you started the quiz.",
             quiz_duration.num_minutes()
         );
-        println!(self, "There are still {} cards left to go.", remaining_cards,);
+        println!(
+            self,
+            "There are still {} cards left to go.", remaining_cards,
+        );
         loop {
             println!(self, "If you want to stop, press enter.");
             println!(self, "Otherwise, type in how many more minutes: ");
             match self.delegate.read_minutes()? {
-                Some(buffer) => {
-                    match i64::from_str(&buffer) {
-                        Ok(v) if v >= 0 => {
-                            return Ok(Some(v));
-                        }
-                        _ => {}
+                Some(buffer) => match i64::from_str(&buffer) {
+                    Ok(v) if v >= 0 => {
+                        return Ok(Some(v));
                     }
-                }
+                    _ => {}
+                },
                 None => return Ok(None),
             }
         }
     }
 }
-

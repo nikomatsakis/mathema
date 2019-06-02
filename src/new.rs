@@ -3,7 +3,12 @@
 use crate::prelude::*;
 
 crate fn new(options: &MathemaOptions, new_directory: &str) -> Fallible<()> {
-    let MathemaOptions { directory, force, dry_run, command: _ } = options;
+    let MathemaOptions {
+        directory,
+        force,
+        dry_run,
+        command: _,
+    } = options;
 
     if *dry_run {
         throw!(MathemaErrorKind::IncompatibleOption {

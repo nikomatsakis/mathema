@@ -14,10 +14,10 @@ extern crate assert_cli;
 extern crate tempdir;
 
 use self::assert_cli::Assert;
-use std::io::{self, prelude::*};
-use std::fs::{File, OpenOptions};
-use std::path::Path;
 use self::tempdir::TempDir;
+use std::fs::{File, OpenOptions};
+use std::io::{self, prelude::*};
+use std::path::Path;
 
 macro_rules! mathema_test {
     ($test_name:ident is $closure:expr) => {
@@ -25,7 +25,7 @@ macro_rules! mathema_test {
         fn $test_name() {
             env::mathema_test("foo", "foo", 22, $closure)
         }
-    }
+    };
 }
 
 crate struct TestEnv {
@@ -46,13 +46,18 @@ impl TestEnv {
     /// Returns an `Assert` that is configured to run `mathema`.
     crate fn assert_mathema(&mut self, in_dir: &str) -> Assert {
         let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
-        Assert::command(&["cargo", "run", "--manifest-path", manifest_dir.to_str().unwrap(), "--"])
-            .current_dir(self.temp_dir.path().join(in_dir).to_owned())
+        Assert::command(&[
+            "cargo",
+            "run",
+            "--manifest-path",
+            manifest_dir.to_str().unwrap(),
+            "--",
+        ])
+        .current_dir(self.temp_dir.path().join(in_dir).to_owned())
     }
 
     crate fn assert_git(&mut self, in_dir: &str) -> Assert {
-        Assert::command(&["git"])
-            .current_dir(self.temp_dir.path().join(in_dir).to_owned())
+        Assert::command(&["git"]).current_dir(self.temp_dir.path().join(in_dir).to_owned())
     }
 
     crate fn write_file(&mut self, name: &str, contents: &str) -> io::Result<()> {
@@ -69,10 +74,7 @@ impl TestEnv {
         Ok(())
     }
 
-    crate fn read_file(
-        &self,
-        name: &str,
-    ) -> io::Result<String> {
+    crate fn read_file(&self, name: &str) -> io::Result<String> {
         let path = self.temp_dir.path().join(name);
         let mut buf = String::new();
         let mut file = File::open(path)?;

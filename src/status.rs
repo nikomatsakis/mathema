@@ -23,11 +23,9 @@ crate fn status(options: &MathemaOptions) -> Fallible<()> {
     } else {
         println!(
             "{} valid cards found amongst {} files.",
-            status.valid_cards,
-            status.valid_card_files,
+            status.valid_cards, status.valid_card_files,
         );
     }
 
     Ok(())
 }
-

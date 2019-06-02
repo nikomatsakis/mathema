@@ -61,7 +61,8 @@ crate fn quiz(
         duration_min,
         suitable_questions,
         mode,
-    }.run()
+    }
+    .run()
 }
 
 struct Quiz<'o> {
@@ -103,9 +104,9 @@ impl Quiz<'_> {
             }
 
             let card = self.repo.card(uuid);
-            let mut expected_responses: Vec<_> = card.lines_with_kind(
-                question_kind.response_line_kind(),
-            ).collect();
+            let mut expected_responses: Vec<_> = card
+                .lines_with_kind(question_kind.response_line_kind())
+                .collect();
 
             let prompt = Prompt {
                 start_time,

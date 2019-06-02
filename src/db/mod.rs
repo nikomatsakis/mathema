@@ -56,7 +56,9 @@ impl Database {
     crate fn empty() -> Database {
         Database {
             card_files: vec![],
-            user: User { records: HashMap::new() },
+            user: User {
+                records: HashMap::new(),
+            },
         }
     }
 
@@ -80,30 +82,23 @@ impl Database {
     }
 
     crate fn card_record_mut(&mut self, uuid: Uuid) -> &mut CardRecord {
-        self.user.records.entry(uuid).or_insert(CardRecord::default())
+        self.user
+            .records
+            .entry(uuid)
+            .or_insert(CardRecord::default())
     }
 }
 
 impl CardRecord {
-    crate fn push_question_record(
-        &mut self,
-        kind: QuestionKind,
-        record: QuestionRecord,
-    ) {
+    crate fn push_question_record(&mut self, kind: QuestionKind, record: QuestionRecord) {
         self.questions.entry(kind).or_insert(vec![]).push(record);
     }
 
-    crate fn last_asked(
-        &self,
-        kind: QuestionKind,
-    ) -> Option<UtcDateTime> {
+    crate fn last_asked(&self, kind: QuestionKind) -> Option<UtcDateTime> {
         Some(self.questions(kind).last()?.date)
     }
 
-    crate fn questions(
-        &self,
-        kind: QuestionKind,
-    ) -> &[QuestionRecord] {
+    crate fn questions(&self, kind: QuestionKind) -> &[QuestionRecord] {
         self.questions.get(&kind).map(|v| &v[..]).unwrap_or(&[])
     }
 
@@ -116,7 +111,13 @@ impl CardRecord {
             .iter()
             .enumerate()
             .rev()
-            .filter_map(|(index, q)| if q.result == result { Some(index) } else { None })
+            .filter_map(|(index, q)| {
+                if q.result == result {
+                    Some(index)
+                } else {
+                    None
+                }
+            })
             .next()
     }
 
@@ -131,7 +132,9 @@ impl CardRecord {
     ) -> impl Iterator<Item = (&QuestionRecord, &QuestionRecord)> {
         let questions = self.questions(kind);
         let len = questions.len();
-        (1..len).map(move |i| (&questions[i - 1], &questions[i])).rev()
+        (1..len)
+            .map(move |i| (&questions[i - 1], &questions[i]))
+            .rev()
     }
 }
 
@@ -172,7 +175,12 @@ impl fmt::Display for PromptText {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.0 {
             QuestionKind::Translate { from, to } => {
-                write!(fmt, "translate from {} to {}", from.full_name(), to.full_name())?;
+                write!(
+                    fmt,
+                    "translate from {} to {}",
+                    from.full_name(),
+                    to.full_name()
+                )?;
             }
         }
 
