@@ -8,7 +8,9 @@ export default class Card {
     this.partOfSpeech = null;
   }
 
-  async fetch(cardUuid) {
+  static async fetch(cardUuid) {
+    console.log("hi");
+    console.log(`Card.fetch(cardUuid=${cardUuid})`);
     let cardData = await fetch(`${HOST}/card/${cardUuid}`).then(r => r.json());
     let card = new Card(cardUuid);
     for (let line of cardData.lines) {

@@ -27,6 +27,7 @@ ron = "0.2"
 walkdir = "2.0"
 tide = "0.2.0"
 http = "0.1"
+percent-encoding = "1.0"
 
 [dependencies.uuid]
 version = "0.6.0-beta"

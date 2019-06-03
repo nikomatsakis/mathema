@@ -10,20 +10,23 @@ use uuid::Uuid;
 
 async fn serve_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
     let repo = cx.app_data().lock().unwrap();
+    eprintln!("serve_cards");
     let uuids: Vec<Uuid> = repo.cards().keys().cloned().collect();
     Ok(tide::response::json(uuids))
 }
 
 async fn serve_card(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
     let repo = cx.app_data().lock().unwrap();
-    let uuid: Uuid = cx.param("uuid").unwrap();
+    let uuid: Uuid = cx.param("uuid").map_err(|_| StatusCode::BAD_REQUEST)?;
+    eprintln!("serve_card uuid={}", uuid);
     let card = repo.card(uuid);
     Ok(tide::response::json(card))
 }
 
 async fn quiz_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
     let repo = cx.app_data().lock().unwrap();
-    let language: Language = cx.param("lang").unwrap();
+    let language: Language = cx.param("lang").map_err(|_| StatusCode::BAD_REQUEST)?;
+    eprintln!("quiz_cards language={:?}", language);
 
     let suitable_questions = SUITABLE_QUESTIONS
         .iter()
@@ -33,7 +36,23 @@ async fn quiz_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::Endpoi
 
     let rng = &mut rand::thread_rng();
     let cards = selection::expired_cards(rng, &repo, &suitable_questions);
+    eprintln!("cards={:?}", cards.len());
     Ok(tide::response::json(cards))
+}
+
+async fn transliterate(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
+    eprintln!("transliterate");
+    let language: Language = cx.param("lang").map_err(|_| StatusCode::BAD_REQUEST)?;
+    eprintln!("transliterate={:?}", language);
+
+    // FIXME(tide) -- this all looks like tide bugs to me
+    let text: String = cx.param("text*").map_err(|_| StatusCode::BAD_REQUEST)?;
+    let text: String = percent_encoding::percent_decode(text.as_bytes()).decode_utf8().map_err(|_| StatusCode::BAD_REQUEST)?.into_owned();
+
+    eprintln!("transliterate={:?}", text);
+    let out_text = language.transliterate(&text);
+    eprintln!("transliterate={:?}", out_text);
+    Ok(tide::response::json(out_text))
 }
 
 crate fn serve(options: &MathemaOptions) -> Fallible<()> {
@@ -48,6 +67,7 @@ crate fn serve(options: &MathemaOptions) -> Fallible<()> {
         app.at("/api/cards").get(serve_cards);
         app.at("/api/card/:uuid").get(serve_card);
         app.at("/api/quiz_cards/:lang").get(quiz_cards);
+        app.at("/api/transliterate/:lang/:text*").get(transliterate);
         app.serve("127.0.0.1:8000")?;
     }
 }

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Card from "./Card";
-import { Host } from "./Constants";
+import { HOST } from "./Constants";
 
 export default class ViewCards extends Component {
   state = {
