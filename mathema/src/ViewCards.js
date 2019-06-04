@@ -20,8 +20,10 @@ export default class ViewCards extends Component {
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">{card.uuid}</h5>
-                <h6 className="card-subtitle mb-2 text-muted">
-                  {card.meanings.English}, {card.meanings.Greek}
+              <h6 className="card-subtitle mb-2 text-muted">
+              {card.meanings.map(m => (
+                  <span>{m.language}: {m.text}</span>
+              ))}
                 </h6>
               </div>
             </div>

@@ -20,4 +20,8 @@ export default class QuestionKind {
   toLanguage() {
     return this.Translate.to;
   }
+
+  expectedAnswers(card) {
+    return card.meaningsIn(this.toLanguage());
+  }
 }
