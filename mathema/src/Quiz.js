@@ -133,6 +133,14 @@ export default class QuizComponent extends Component {
     );
   }
 
+  // If the user is typing, we often have promises that have not yet
+  // resolved from before. In that case, we enqueue our new promises
+  // after those so that everything executes in a sequential
+  // order. It's actually not clear this makes sense, since those
+  // earlier promises are mostly invalidated by new keypresses -- but
+  // it definitely makes sense for the "submit answer" event. We may
+  // want to tweak this logic to just accumulate keypress promises and
+  // then use `Promise.all(...).then(..)` for the final one.
   submitFormEvent(fn) {
     if (this.state.pendingTransliteration == null) {
       console.log("submitFormEvent: no pending transliteration");
