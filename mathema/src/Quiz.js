@@ -21,7 +21,7 @@ export default class QuizComponent extends Component {
     // Promise for transliteraton: if the user presses a key, we kick off
     // a transliteration request, and then we wait until this
     // promise is resolved to process the next key.
-    pendingTransliteration: null,
+    pendingTransliterations: [],
   };
 
   componentDidMount() {
@@ -108,12 +108,14 @@ export default class QuizComponent extends Component {
     let translateInput = (event) => {
       let target = event.target;
       let startValue = target.value;
-      this.submitFormEvent(() => this.translateInput(target, startValue));
+      this.state.pendingTransliterations.push(this.translateInput(target, startValue));
     };
 
     let submitAnswer = (event) => {
       event.preventDefault();
-      this.submitFormEvent(() => this.submitAnswer());
+      let promise =
+          Promise.all(this.state.pendingTransliterations).then(this.submitAnswer());
+      this.state.pendingTransliterations = [];
     };
 
     return (
@@ -131,30 +133,6 @@ export default class QuizComponent extends Component {
         </div>
         </div>
     );
-  }
-
-  // If the user is typing, we often have promises that have not yet
-  // resolved from before. In that case, we enqueue our new promises
-  // after those so that everything executes in a sequential
-  // order. It's actually not clear this makes sense, since those
-  // earlier promises are mostly invalidated by new keypresses -- but
-  // it definitely makes sense for the "submit answer" event. We may
-  // want to tweak this logic to just accumulate keypress promises and
-  // then use `Promise.all(...).then(..)` for the final one.
-  submitFormEvent(fn) {
-    if (this.state.pendingTransliteration == null) {
-      console.log("submitFormEvent: no pending transliteration");
-      this.updateState({
-        pendingTransliteration: fn()
-      });
-    } else {
-      console.log("submitFormEvent: pending transliteration");
-      this.updateState({
-        pendingTransliteration: this.state.pendingTransliteration.then(async function() {
-          await fn();
-        }),
-      });
-    }
   }
 
   async translateInput(inputElement, startValue) {
