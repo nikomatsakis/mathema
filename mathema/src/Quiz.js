@@ -18,9 +18,10 @@ export default class QuizComponent extends Component {
     // Answers the user has given thus far
     answers: [],
 
-    // Promise for transliteraton: if the user presses a key, we kick off
-    // a transliteration request, and then we wait until this
-    // promise is resolved to process the next key.
+    // List of pending transliteration promises. We append each
+    // transliteration request to this list as the user types. When
+    // they hit enter, we wait for them all to complete (most will
+    // have already done so, but so what).
     pendingTransliterations: [],
   };
 
@@ -150,7 +151,9 @@ export default class QuizComponent extends Component {
     let uri = `${HOST}/transliterate/${language}/${encodeURIComponent(startValue)}`;
     let transliterated = await fetch(uri).then(r => r.json());
     if (transliterated !== startValue) {
-      // check that the input hasn't changed in the meantime:
+      // Check that the input hasn't changed in the meantime (i.e.,
+      // because the user typed more). If it did, we'll have kicked
+      // off a separate request for that.
       if (inputElement.value == startValue) {
         inputElement.value = transliterated;
       }
