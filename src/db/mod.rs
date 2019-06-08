@@ -52,6 +52,19 @@ pub(crate) enum QuestionResult {
     No,
 }
 
+impl FromStr for QuestionResult {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, ()> {
+        match s {
+            "Yes" | "yes" => Ok(QuestionResult::Yes),
+            "Almost" | "almost" => Ok(QuestionResult::Almost),
+            "No" | "no" => Ok(QuestionResult::No),
+            _ => Err(()),
+        }
+    }
+}
+
 impl Database {
     crate fn empty() -> Database {
         Database {

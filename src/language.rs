@@ -26,8 +26,8 @@ impl FromStr for Language {
     type Err = MathemaError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "gr" => Ok(Language::Greek),
-            "en" => Ok(Language::English),
+            "Greek" | "gr" => Ok(Language::Greek),
+            "English" | "en" => Ok(Language::English),
             _ => Err(MathemaErrorKind::UnrecognizedLanguage {
                 text: s.to_string(),
             }

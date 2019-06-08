@@ -7,10 +7,6 @@ export default class App extends Component {
     subcomponent: null
   }
 
-  constructor(props) {
-    super(props);
-  }
-
   componentDidMount() {
   }
 

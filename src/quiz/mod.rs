@@ -192,7 +192,7 @@ impl Quiz<'_> {
     }
 }
 
-fn check_user_response(expected_response: &str, user_response: &str) -> bool {
+crate fn check_user_response(expected_response: &str, user_response: &str) -> bool {
     let user_response = user_response.trim();
     let expected_response = PARENTHETICALS.replace_all(expected_response, "");
     expected_response.trim() == user_response || {

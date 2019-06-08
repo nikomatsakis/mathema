@@ -7,6 +7,7 @@ crate use crate::{
     git::MathemaRepository,
     language::Language,
     line_parser::LineParser,
+    quiz,
     quiz::presentation::text::{TextDelegate, TextPresentation},
     quiz::presentation::{Presentation, PresentationMode, Prompt},
     quiz::SUITABLE_QUESTIONS,

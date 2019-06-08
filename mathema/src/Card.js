@@ -34,7 +34,7 @@ export default class Card {
 
   meaningsIn(inLanguage) {
     return this.meanings
-      .filter(m => m.language == inLanguage)
+      .filter(m => m.language === inLanguage)
       .map(m => m.text);
   }
 }
