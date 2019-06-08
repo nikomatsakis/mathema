@@ -58,9 +58,11 @@ export default class QuizComponent extends Component {
   };
 
   componentDidMount() {
-    log.log(`duration = ${this.props.duration}`);
+    log.debug(`duration = ${this.props.duration}`);
     this.loadWords();
+    this.keydownListener = (event) => this.keydownEvent(event);
     this.keyupListener = (event) => this.keyupEvent(event);
+    document.addEventListener('keydown', this.keydownListener);
     document.addEventListener('keyup', this.keyupListener);
   }
 
@@ -73,11 +75,12 @@ export default class QuizComponent extends Component {
   }
 
   compountWillUnmount() {
+    document.removeEventListener('keydown', this.keydownListener);
     document.removeEventListener('keyup', this.keyupListener);
   }
 
   updateState(obj) {
-    log.log(`quiz: update state=${JSON.stringify(obj)}`);
+    log.debug(`quiz: update state=${JSON.stringify(obj)}`);
     this.setState(Object.assign(this.state, obj));
   }
 
@@ -107,7 +110,7 @@ export default class QuizComponent extends Component {
 
   async loadCard() {
     let uuid = this.state.questions[this.state.index].uuid;
-    log.log("loadCard(): uuid = " + uuid);
+    log.debug("loadCard(): uuid = " + uuid);
     let card = await Card.fetch(uuid);
     this.updateState({ card });
   }
@@ -207,7 +210,7 @@ export default class QuizComponent extends Component {
         <Answers answers={this.state.answers}/>
 
       {this.state.missingAnswers.length > 0 ? (
-          <div onKeyPress={(e) => log.log(e.key)}>
+          <div onKeyPress={(e) => log.debug(e.key)}>
           <MissingAnswers missingAnswers={this.state.missingAnswers}/>
           <h3>Did you know it?</h3>
           <form>
@@ -260,7 +263,7 @@ export default class QuizComponent extends Component {
   // Given the html doc element for the `<input>` and the answer text
   // that was given, submit the answer to the server.
   async submitAnswer(input, answer) {
-    log.log("submitAnswer");
+    log.debug("submitAnswer");
 
     // Whatever happens, clear out the text box the user wrote.
     input.value = "";
@@ -296,7 +299,7 @@ export default class QuizComponent extends Component {
   }
 
   expectMoreAnswers() {
-    log.log("expectMoreAnswers");
+    log.debug("expectMoreAnswers");
 
     this.updateState({
       pendingTransliterations: [],
@@ -305,16 +308,20 @@ export default class QuizComponent extends Component {
   }
 
   async determineGrade() {
-    log.log(`determineGrade()`);
+    log.debug(`determineGrade()`);
 
     let expectedAnswers = this.expectedAnswers();
     let missingAnswers = expectedAnswers.slice(0); // make a local clone
-    for (let [answerIgnored, answerIndex] in this.state.answers) {
+    log.debug(`missingAnswers: ${missingAnswers}`);
+    for (let [answer, answerIndex] of this.state.answers) {
+      log.debug(`answer ${answer} matched at index ${answerIndex}`);
       if (answerIndex !== undefined) {
         missingAnswers[answerIndex] = null;
       }
     }
+    log.debug(`missingAnswers: ${missingAnswers}`);
     missingAnswers = missingAnswers.filter(a => a != null);
+    log.debug(`missingAnswers: ${missingAnswers}`);
 
     if (missingAnswers.length === 0) {
       await this.submitResult("yes");
@@ -329,24 +336,42 @@ export default class QuizComponent extends Component {
     let uri = `${HOST}/check_answer/` +
         `${encodeURIComponent(expected)}/` +
         `${encodeURIComponent(user)}`;
-    await fetch(uri).then(r => r.json())
+    log.debug(`checkAnswer: uri=${uri}`);
+    return await fetch(uri).then(r => r.json());
   }
 
   // Returns the index of answer in the list of expected answers, or else undefined.
   async answerIndex(answer) {
     let expectedAnswers = this.expectedAnswers();
     for (let i = 0; i < expectedAnswers.length; i++) {
-      if (await this.checkAnswer(expectedAnswers[i], answer)) {
+      let result = await this.checkAnswer(expectedAnswers[i], answer);
+      log.debug(`checkAnswer returned ${result}`);
+      if (result) {
         return i;
       }
     }
     return undefined;
   }
 
+  async keydownEvent(event) {
+    if (this.state.missingAnswers.length > 0) {
+      log.debug(`received keydownEvent: ${event.code}`);
+      this.loggedKeyDown = event.code;
+    }
+  }
+
   async keyupEvent(event) {
     if (this.state.missingAnswers.length > 0) {
       // waiting for a yes, no, almost...
-      log.log(`received keypress: ${event.code}`);
+      log.debug(`received keyupEvent: ${event.code}`);
+
+      if (event.code !== this.loggedKeyDown) {
+        // sometimes we get a key-up from a previous state, if user hits enter at wrong
+        // time. ignore those.
+        log.debug("no keydown!");
+        return;
+      }
+
       if (event.code === "KeyY") {
         this.submitResult("yes");
       } else if (event.code === "KeyN") {
@@ -358,7 +383,7 @@ export default class QuizComponent extends Component {
   }
 
   async submitResult(result) {
-    log.log(`submitResult(${result})`);
+    log.debug(`submitResult(${result})`);
 
     let question = this.state.questions[this.state.index];
     let uuid = question.uuid;

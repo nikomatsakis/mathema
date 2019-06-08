@@ -53,8 +53,11 @@ async fn transliterate(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::End
 async fn check_answer(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
     eprintln!("check_answer");
     let expected: String = cx.param("expected").map_err(|_| StatusCode::BAD_REQUEST)?;
+    let expected: String = percent_encoding::percent_decode(expected.as_bytes()).decode_utf8().map_err(|_| StatusCode::BAD_REQUEST)?.into_owned(); // TIDE bug?
     let user: String = cx.param("user").map_err(|_| StatusCode::BAD_REQUEST)?;
+    let user: String = percent_encoding::percent_decode(user.as_bytes()).decode_utf8().map_err(|_| StatusCode::BAD_REQUEST)?.into_owned(); // TIDE bug?
     let result = quiz::check_user_response(&expected, &user);
+    eprintln!("expected={:?} user={:?} result={:?}", expected, user, result);
     Ok(tide::response::json(result))
 }
 
