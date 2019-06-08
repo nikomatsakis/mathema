@@ -22,8 +22,9 @@ export default class App extends Component {
     };
 
     let startQuiz = () => {
+      let duration = parseInt(document.getElementById("duration").value);
       this.setState({
-        subcomponent: <Quiz language="gr" duration="5"/>
+        subcomponent: <Quiz language="gr" duration={duration}/>
       });
     };
 
@@ -33,7 +34,10 @@ export default class App extends Component {
       <h1>Pick your poison</h1>
       <ul>
         <li> <button onClick={viewCards}>View cards</button> </li>
-        <li> <button onClick={startQuiz}>Start quiz</button> </li>
+        <li>
+          <button onClick={startQuiz}>Start quiz</button>
+          <input type="number" id="duration" name="duration" defaultValue="300"/>
+        </li>
       </ul>
       </div>
         </div>

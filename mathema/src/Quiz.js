@@ -58,6 +58,7 @@ export default class QuizComponent extends Component {
   };
 
   componentDidMount() {
+    log.log(`duration = ${this.props.duration}`);
     this.loadWords();
     this.keyupListener = (event) => this.keyupEvent(event);
     document.addEventListener('keyup', this.keyupListener);
