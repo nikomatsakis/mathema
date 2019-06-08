@@ -23,7 +23,7 @@ export default class App extends Component {
 
     let startQuiz = () => {
       this.setState({
-        subcomponent: <Quiz language="gr"/>
+        subcomponent: <Quiz language="gr" duration="5"/>
       });
     };
 

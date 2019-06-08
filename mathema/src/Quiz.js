@@ -1,3 +1,5 @@
+/*eslint no-unused-vars: ["error", { "varsIgnorePattern": "[iI]gnored" }]*/
+
 // CURRENT STATUS:
 //
 // If we get back to the quiz main state, check if `missingAnswers` is non-empty
@@ -10,12 +12,20 @@ import Question from "./Question";
 import Card from "./Card";
 import Answers from "./Answers";
 import MissingAnswers from "./MissingAnswers";
+import QuizComplete from "./QuizComplete";
 import {post} from "./util";
 
+// Properties:
+//
+// - language: to quiz
+// - duration: in seconds
 export default class QuizComponent extends Component {
   state = {
     // List of all questions we will ask during the quiz
     questions: null,
+
+    // The date when we started the quiz, recorded once words are loaded
+    startTime: null,
 
     // Current index into the list
     index: 0,
@@ -46,10 +56,6 @@ export default class QuizComponent extends Component {
     // not sure where else to put it.
     pendingTransliterations: null,
   };
-
-  constructor(props) {
-    super(props);
-  }
 
   componentDidMount() {
     this.loadWords();
@@ -83,6 +89,7 @@ export default class QuizComponent extends Component {
           return json.map(q => Question.fromJson(q));
         });
 
+    this.updateState({ startTime: Date.now() });
     this.updateState({ questions, index: 0 });
     this.resetStateBetweenQuestions();
     this.loadCard();
@@ -124,16 +131,9 @@ export default class QuizComponent extends Component {
       );
     }
 
-    // Asked all the cards!
+    // Asked all the cards.
     if (index >= questions.length) {
-      return (
-          <div className="container">
-          <div className="col-xs-12">
-          <h1>Quiz complete!</h1>
-          <iframe src="https://giphy.com/embed/l0MYt5jPR6QX5pnqM" width="480" height="270" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/party-the-office-hard-l0MYt5jPR6QX5pnqM">via GIPHY</a></p>
-          </div>
-          </div>
-      );
+      return (<QuizComplete/>);
     }
 
     if (card === null) {
@@ -308,7 +308,7 @@ export default class QuizComponent extends Component {
 
     let expectedAnswers = this.expectedAnswers();
     let missingAnswers = expectedAnswers.slice(0); // make a local clone
-    for (let [answer, answerIndex] in this.state.answers) {
+    for (let [answerIgnored, answerIndex] in this.state.answers) {
       if (answerIndex !== undefined) {
         missingAnswers[answerIndex] = null;
       }
@@ -369,13 +369,22 @@ export default class QuizComponent extends Component {
         encodeURIComponent(fromLanguage) + "/" +
         encodeURIComponent(toLanguage) + "/" +
         result;
-    post(uri, "");
+    await post(uri, "");
 
     this.resetStateBetweenQuestions();
-    this.updateState({
-      index: this.state.index + 1,
-    });
-    this.loadCard();
+    let timeThusFar = (Date.now() - this.state.startTime) / 1000; // in seconds
+    if (timeThusFar > this.props.duration) {
+      // Ran out of time
+      log.info(`quiz duration exceeded: timeThusFar=${timeThusFar}`);
+      this.updateState({
+        index: this.state.questions.length,
+      });
+    } else {
+      this.updateState({
+        index: this.state.index + 1,
+      });
+      this.loadCard();
+    }
   }
 }
 
