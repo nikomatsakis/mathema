@@ -15,16 +15,22 @@ export default class App extends Component {
       return this.state.subcomponent;
     }
 
+    let resetApp = () => {
+      this.setState({
+        subcomponent: null
+      });
+    };
+
     let viewCards = () => {
       this.setState({
-        subcomponent: <ViewCards/>
+        subcomponent: <ViewCards resetApp={resetApp}/>
       });
     };
 
     let startQuiz = () => {
       let duration = parseInt(document.getElementById("duration").value);
       this.setState({
-        subcomponent: <Quiz language="gr" duration={duration}/>
+        subcomponent: <Quiz language="gr" duration={duration} resetApp={resetApp}/>
       });
     };
 

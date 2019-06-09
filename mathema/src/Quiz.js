@@ -79,11 +79,6 @@ export default class QuizComponent extends Component {
     document.removeEventListener('keyup', this.keyupListener);
   }
 
-  updateState(obj) {
-    log.debug(`quiz: update state=${JSON.stringify(obj)}`);
-    this.setState(Object.assign(this.state, obj));
-  }
-
   async loadWords() {
     let language = this.props.language;
 
@@ -93,14 +88,14 @@ export default class QuizComponent extends Component {
           return json.map(q => Question.fromJson(q));
         });
 
-    this.updateState({ startTime: Date.now() });
-    this.updateState({ questions, index: 0 });
+    this.setState({ startTime: Date.now() });
+    this.setState({ questions, index: 0 });
     this.resetStateBetweenQuestions();
     this.loadCard();
   }
 
   resetStateBetweenQuestions() {
-    this.updateState({
+    this.setState({
       card: null,
       answers: [],
       missingAnswers: [],
@@ -112,7 +107,7 @@ export default class QuizComponent extends Component {
     let uuid = this.state.questions[this.state.index].uuid;
     log.debug("loadCard(): uuid = " + uuid);
     let card = await Card.fetch(uuid);
-    this.updateState({ card });
+    this.setState({ card });
   }
 
   // Returns the expected answers for the current question
@@ -137,7 +132,7 @@ export default class QuizComponent extends Component {
 
     // Asked all the cards.
     if (index >= questions.length) {
-      return (<QuizComplete/>);
+      return (<QuizComplete resetApp={this.props.resetApp}/>);
     }
 
     if (card === null) {
@@ -158,7 +153,7 @@ export default class QuizComponent extends Component {
       let target = event.target;
       let startValue = target.value;
       if (this.state.pendingTransliterations != null) {
-        this.updateState({
+        this.setState({
           pendingTransliterations: this.state.pendingTransliterations.concat([
             this.translateInput(target, startValue)
           ])
@@ -174,7 +169,7 @@ export default class QuizComponent extends Component {
 
       if (this.state.pendingTransliterations != null) {
         Promise.all(this.state.pendingTransliterations).then(this.submitAnswer(input, input.value));
-        this.updateState({
+        this.setState({
           pendingTransliterations: null,
         });
       } else {
@@ -284,7 +279,7 @@ export default class QuizComponent extends Component {
     }
 
     // Otherwise, figure out if it is correct and add it to our list of answers.
-    this.updateState({
+    this.setState({
       answers: this.state.answers.concat([[answer, answerIndex]]),
     });
 
@@ -301,7 +296,7 @@ export default class QuizComponent extends Component {
   expectMoreAnswers() {
     log.debug("expectMoreAnswers");
 
-    this.updateState({
+    this.setState({
       pendingTransliterations: [],
     });
     return;
@@ -326,7 +321,7 @@ export default class QuizComponent extends Component {
     if (missingAnswers.length === 0) {
       await this.submitResult("yes");
     } else {
-      this.updateState({missingAnswers});
+      this.setState({missingAnswers});
     }
 
     return;
@@ -355,7 +350,7 @@ export default class QuizComponent extends Component {
 
   async keydownEvent(event) {
     if (this.state.missingAnswers.length > 0) {
-      log.debug(`received keydownEvent: ${event.code}`);
+      log.debug(`received shkeydownEvent: ${event.code}`);
       this.loggedKeyDown = event.code;
     }
   }
@@ -402,11 +397,11 @@ export default class QuizComponent extends Component {
     if (timeThusFar > this.props.duration) {
       // Ran out of time
       log.info(`quiz duration exceeded: timeThusFar=${timeThusFar}`);
-      this.updateState({
+      this.setState({
         index: this.state.questions.length,
       });
     } else {
-      this.updateState({
+      this.setState({
         index: this.state.index + 1,
       });
       this.loadCard();

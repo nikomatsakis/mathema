@@ -10,14 +10,14 @@ export default class QuizComplete extends Component {
 
   render() {
     log.debug("rendering quizcomplete");
-      return (
-          <div className="container">
-          <div className="col-xs-12">
-          <h1>Quiz complete!</h1>
-          <img alt="Office party" src="https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif"/>
-          </div>
-          </div>
-      );
+    return (
+        <div className="container">
+        <div className="col-xs-12">
+        <h1>Quiz complete!</h1>
+        <img alt="Office party" src="https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif" onClick={this.props.resetApp} />
+        </div>
+        </div>
+    );
   }
 
   async writeDatabase() {
