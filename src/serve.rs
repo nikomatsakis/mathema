@@ -1,7 +1,12 @@
 use crate::prelude::*;
 use http::status::StatusCode;
+use http_service::Body;
 use std::sync::Mutex;
 use uuid::Uuid;
+
+#[derive(rust_embed::RustEmbed)]
+#[folder = "mathema/build"]
+struct Asset;
 
 async fn serve_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
     let repo = cx.app_data().lock().unwrap();
@@ -90,6 +95,39 @@ async fn write_db(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::Endpoint
     Ok(tide::response::json("ok"))
 }
 
+async fn serve_asset(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
+    eprintln!("serve_asset(cx.uri().path() = {:?})", cx.uri().path());
+    serve_path(cx.uri().path()).await
+}
+
+async fn serve_index(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
+    eprintln!("serve_index(cx.uri().path() = {:?})", cx.uri().path());
+    serve_path("index.html").await
+}
+
+async fn serve_path(path: &str) -> tide::EndpointResult {
+    let data = Asset::get(&path[1..]).ok_or(StatusCode::NOT_FOUND)?;
+
+    let content_type: Option<&str> = try {
+        match Path::new(path).extension()?.to_str()? {
+            "json" => "application/json",
+            "html" => "text/html;charset=UTF-8",
+            "js" => "text/javascript;charset=UTF-8",
+            "ico" => "image/vnd.microsoft.icon",
+            "css" => "text/css;charset=UTF-8",
+            _ => None?,
+        }
+    };
+
+    Ok(
+        http::Response::builder()
+            .status(http::status::StatusCode::OK)
+            .header("Content-Type", content_type.unwrap_or("application/octet-stream"))
+            .body(Body::from(&data[..]))
+            .unwrap()
+    )
+}
+
 crate fn serve(options: &MathemaOptions) -> Fallible<()> {
     try {
         let mut repo = MathemaRepository::open(options)?;
@@ -106,6 +144,16 @@ crate fn serve(options: &MathemaOptions) -> Fallible<()> {
         app.at("/api/check_answer/:expected/:user").get(check_answer);
         app.at("/api/mark_answer/:uuid/translate/:from/:to/:response").post(mark_answer);
         app.at("/api/write_db").post(write_db);
+
+        // Register the static assets. I don't think that tide supports a fallback,
+        // which is annoying.
+        app.at("/").get(serve_index);
+        for file in Asset::iter() {
+            assert!(!file.contains(":"));
+            app.at(&file).get(serve_asset);
+            eprintln!("serving assert {:?}", file);
+        }
+
         app.serve("127.0.0.1:8000")?;
     }
 }
