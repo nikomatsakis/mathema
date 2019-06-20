@@ -115,6 +115,7 @@ enum MathemaCommand {
 }
 
 fn main() {
+    env_logger::init();
     match main1() {
         Ok(()) => {}
         Err(err) => {

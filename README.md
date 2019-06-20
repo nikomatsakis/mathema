@@ -67,4 +67,14 @@ uuid assigned).
 
 To be written. Still busy implementing the stuff before. =)
 
+## Serving
+
+To run quizzes using a web front-end, do this:
+
+```
+cd mathema
+npm run build # must have npm installed
+cd ..
+cargo run -- serve
+```
 

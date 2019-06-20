@@ -17,6 +17,8 @@ structopt = "0.1.7"
 structopt-derive = "0.1.6"
 git2 = "0.8"
 lazy_static = "1.0"
+log = "0.4.6"
+env_logger = "0.6.1"
 rand = "0.4"
 regex = "0.2"
 ncurses = { version="5.0", optional = true }

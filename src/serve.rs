@@ -10,7 +10,7 @@ struct Asset;
 
 async fn serve_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
     let repo = cx.app_data().lock().unwrap();
-    eprintln!("serve_cards");
+    log::info!("serve_cards");
     let uuids: Vec<Uuid> = repo.cards().keys().cloned().collect();
     Ok(tide::response::json(uuids))
 }
@@ -18,7 +18,7 @@ async fn serve_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::Endpo
 async fn serve_card(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
     let repo = cx.app_data().lock().unwrap();
     let uuid: Uuid = cx.param("uuid").map_err(|_| StatusCode::BAD_REQUEST)?;
-    eprintln!("serve_card uuid={}", uuid);
+    log::info!("serve_card uuid={}", uuid);
     let card = repo.card(uuid);
     Ok(tide::response::json(card))
 }
@@ -26,7 +26,7 @@ async fn serve_card(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::Endpoi
 async fn quiz_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
     let repo = cx.app_data().lock().unwrap();
     let language: Language = cx.param("lang").map_err(|_| StatusCode::BAD_REQUEST)?;
-    eprintln!("quiz_cards language={:?}", language);
+    log::info!("quiz_cards language={:?}", language);
 
     let suitable_questions = SUITABLE_QUESTIONS
         .iter()
@@ -36,38 +36,38 @@ async fn quiz_cards(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::Endpoi
 
     let rng = &mut rand::thread_rng();
     let cards = selection::expired_cards(rng, &repo, &suitable_questions);
-    eprintln!("cards={:?}", cards.len());
+    log::info!("cards={:?}", cards.len());
     Ok(tide::response::json(cards))
 }
 
 async fn transliterate(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
-    eprintln!("transliterate");
+    log::info!("transliterate");
     let language: Language = cx.param("lang").map_err(|_| StatusCode::BAD_REQUEST)?;
-    eprintln!("transliterate={:?}", language);
+    log::info!("transliterate={:?}", language);
 
     // FIXME(tide) -- this all looks like tide bugs to me
     let text: String = cx.param("text*").map_err(|_| StatusCode::BAD_REQUEST)?;
     let text: String = percent_encoding::percent_decode(text.as_bytes()).decode_utf8().map_err(|_| StatusCode::BAD_REQUEST)?.into_owned();
 
-    eprintln!("transliterate={:?}", text);
+    log::info!("transliterate={:?}", text);
     let out_text = language.transliterate(&text);
-    eprintln!("transliterate={:?}", out_text);
+    log::info!("transliterate={:?}", out_text);
     Ok(tide::response::json(out_text))
 }
 
 async fn check_answer(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
-    eprintln!("check_answer");
+    log::info!("check_answer");
     let expected: String = cx.param("expected").map_err(|_| StatusCode::BAD_REQUEST)?;
     let expected: String = percent_encoding::percent_decode(expected.as_bytes()).decode_utf8().map_err(|_| StatusCode::BAD_REQUEST)?.into_owned(); // TIDE bug?
     let user: String = cx.param("user").map_err(|_| StatusCode::BAD_REQUEST)?;
     let user: String = percent_encoding::percent_decode(user.as_bytes()).decode_utf8().map_err(|_| StatusCode::BAD_REQUEST)?.into_owned(); // TIDE bug?
     let result = quiz::check_user_response(&expected, &user);
-    eprintln!("expected={:?} user={:?} result={:?}", expected, user, result);
+    log::info!("expected={:?} user={:?} result={:?}", expected, user, result);
     Ok(tide::response::json(result))
 }
 
 async fn mark_answer(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
-    eprintln!("mark_answer");
+    log::info!("mark_answer");
     let uuid: Uuid = cx.param("uuid").map_err(|_| StatusCode::BAD_REQUEST)?;
     let from: Language = cx.param("from").map_err(|_| StatusCode::BAD_REQUEST)?;
     let to: Language = cx.param("to").map_err(|_| StatusCode::BAD_REQUEST)?;
@@ -89,23 +89,22 @@ async fn mark_answer(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::Endpo
 }
 
 async fn write_db(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
-    eprintln!("write_db");
+    log::info!("write_db");
     let mut repo = cx.app_data().lock().unwrap();
     repo.write_database().map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(tide::response::json("ok"))
 }
 
 async fn serve_asset(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
-    eprintln!("serve_asset(cx.uri().path() = {:?})", cx.uri().path());
     serve_path(cx.uri().path()).await
 }
 
-async fn serve_index(cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
-    eprintln!("serve_index(cx.uri().path() = {:?})", cx.uri().path());
-    serve_path("index.html").await
+async fn serve_index(_cx: tide::Context<Mutex<MathemaRepository>>) -> tide::EndpointResult {
+    serve_path("/index.html").await
 }
 
 async fn serve_path(path: &str) -> tide::EndpointResult {
+    log::info!("serve_path({:?})", path);
     let data = Asset::get(&path[1..]).ok_or(StatusCode::NOT_FOUND)?;
 
     let content_type: Option<&str> = try {
@@ -151,7 +150,7 @@ crate fn serve(options: &MathemaOptions) -> Fallible<()> {
         for file in Asset::iter() {
             assert!(!file.contains(":"));
             app.at(&file).get(serve_asset);
-            eprintln!("serving assert {:?}", file);
+            log::debug!("serving assert {:?}", file);
         }
 
         app.serve("127.0.0.1:8000")?;
